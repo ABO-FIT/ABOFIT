@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { establecerPassword } from "../api/client";
+import logo from "../assets/brand/logo-onlight.png";
 
 export default function EstablecerPassword() {
   const [searchParams] = useSearchParams();
@@ -40,6 +41,9 @@ export default function EstablecerPassword() {
 
   return (
     <main>
+      <div className="brand">
+        <img src={logo} alt="ABOFIT" />
+      </div>
       <h1>Definir contraseña</h1>
       <form onSubmit={handleSubmit}>
         <label htmlFor="password">Contraseña</label>
@@ -69,6 +73,10 @@ export default function EstablecerPassword() {
 
       {mensaje && <p role="status">{mensaje}</p>}
       {error && <p role="alert">{error}</p>}
+
+      <p style={{ marginTop: 16, fontSize: 14 }}>
+        <Link to="/login">Volver a iniciar sesión</Link>
+      </p>
     </main>
   );
 }

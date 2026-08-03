@@ -9,6 +9,13 @@ export async function up(knex: Knex): Promise<void> {
     table.string("usuario", 100).notNullable().unique();
     table.string("password_hash", 255).nullable();
     table.integer("rol_id").unsigned().notNullable().references("id").inTable("roles");
+    table.string("telefono", 30).nullable();
+    table.string("especialidad", 150).nullable();
+    table.text("bio").nullable();
+    table.string("bank_name", 100).nullable();
+    table.string("bank_account", 50).nullable();
+    table.string("bank_holder", 150).nullable();
+    table.string("pay_phone", 30).nullable();
     table.timestamps(true, true);
   });
 }

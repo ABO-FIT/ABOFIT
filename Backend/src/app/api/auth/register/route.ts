@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { enviarCorreoDefinirPassword } from "@/lib/email";
 
-const TIPOS_PERMITIDOS = ["Cliente", "Entrenador", "Gimnasio"] as const;
+const TIPOS_PERMITIDOS = ["Entrenador", "Cliente"] as const;
 const TOKEN_VIGENCIA_HORAS = 24;
+const USUARIO_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 
 function esCorreoValido(correo: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
@@ -17,20 +18,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Cuerpo de la solicitud inválido." }, { status: 400 });
   }
 
-  const { nombre, apellido, correo, usuario, tipo } = body as Record<string, unknown>;
+  const { nombre, apellido, correo, usuario, telefono, tipo, especialidad, bio } = body as Record<string, unknown>;
 
   if (
     typeof nombre !== "string" || !nombre.trim() ||
     typeof apellido !== "string" || !apellido.trim() ||
     typeof correo !== "string" || !correo.trim() ||
     typeof usuario !== "string" || !usuario.trim() ||
+    typeof telefono !== "string" || !telefono.trim() ||
     typeof tipo !== "string"
   ) {
-    return NextResponse.json({ error: "Nombre, apellido, correo, usuario y tipo son obligatorios." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Nombre, apellido, correo, usuario, teléfono y tipo son obligatorios." },
+      { status: 400 },
+    );
   }
 
   if (!esCorreoValido(correo)) {
     return NextResponse.json({ error: "El correo electrónico no tiene un formato válido." }, { status: 400 });
+  }
+
+  if (!USUARIO_REGEX.test(usuario)) {
+    return NextResponse.json(
+      { error: "El usuario debe tener entre 3 y 20 caracteres (letras, números o guión bajo)." },
+      { status: 400 },
+    );
   }
 
   if (!TIPOS_PERMITIDOS.includes(tipo as (typeof TIPOS_PERMITIDOS)[number])) {
@@ -38,6 +50,10 @@ export async function POST(request: Request) {
       { error: `El tipo debe ser uno de: ${TIPOS_PERMITIDOS.join(", ")}.` },
       { status: 400 },
     );
+  }
+
+  if (tipo === "Entrenador" && (typeof especialidad !== "string" || !especialidad.trim())) {
+    return NextResponse.json({ error: "La especialidad es obligatoria para entrenadores." }, { status: 400 });
   }
 
   const correoNormalizado = correo.trim().toLowerCase();
@@ -63,8 +79,11 @@ export async function POST(request: Request) {
     apellido: apellido.trim(),
     correo: correoNormalizado,
     usuario: usuarioNormalizado,
+    telefono: telefono.trim(),
     password_hash: null,
     rol_id: rol.id,
+    especialidad: tipo === "Entrenador" ? (especialidad as string).trim() : null,
+    bio: tipo === "Entrenador" && typeof bio === "string" ? bio.trim() : null,
   });
 
   const token = randomBytes(32).toString("hex");

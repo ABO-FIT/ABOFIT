@@ -1,14 +1,17 @@
 import { useState, type FormEvent } from "react";
-import { registrarUsuario, type RegistroPayload } from "../api/client";
-
-const TIPOS: RegistroPayload["tipo"][] = ["Cliente", "Entrenador", "Gimnasio"];
+import { Link } from "react-router-dom";
+import { registrarUsuario, type RegistroPayload, type TipoRegistro } from "../api/client";
+import logo from "../assets/brand/logo-onlight.png";
 
 const ESTADO_INICIAL: RegistroPayload = {
   nombre: "",
   apellido: "",
   correo: "",
   usuario: "",
+  telefono: "",
   tipo: "Cliente",
+  especialidad: "",
+  bio: "",
 };
 
 export default function Registro() {
@@ -36,7 +39,25 @@ export default function Registro() {
 
   return (
     <main>
+      <div className="brand">
+        <img src={logo} alt="ABOFIT" />
+      </div>
       <h1>Crear cuenta</h1>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        {(["Cliente", "Entrenador"] as TipoRegistro[]).map((tipo) => (
+          <button
+            key={tipo}
+            type="button"
+            className={form.tipo === tipo ? "" : "secondary"}
+            style={{ flex: 1 }}
+            onClick={() => setForm({ ...form, tipo })}
+          >
+            {tipo}
+          </button>
+        ))}
+      </div>
+
       <form onSubmit={handleSubmit}>
         <label htmlFor="nombre">Nombre</label>
         <input
@@ -68,21 +89,40 @@ export default function Registro() {
           id="usuario"
           value={form.usuario}
           onChange={(e) => setForm({ ...form, usuario: e.target.value })}
+          minLength={3}
+          maxLength={20}
+          pattern="[a-zA-Z0-9_]+"
+          title="Letras, números o guión bajo (3 a 20 caracteres)"
           required
         />
 
-        <label htmlFor="tipo">Tipo de persona</label>
-        <select
-          id="tipo"
-          value={form.tipo}
-          onChange={(e) => setForm({ ...form, tipo: e.target.value as RegistroPayload["tipo"] })}
-        >
-          {TIPOS.map((tipo) => (
-            <option key={tipo} value={tipo}>
-              {tipo}
-            </option>
-          ))}
-        </select>
+        <label htmlFor="telefono">Teléfono</label>
+        <input
+          id="telefono"
+          value={form.telefono}
+          onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+          required
+        />
+
+        {form.tipo === "Entrenador" && (
+          <>
+            <label htmlFor="especialidad">Especialidad</label>
+            <input
+              id="especialidad"
+              value={form.especialidad}
+              onChange={(e) => setForm({ ...form, especialidad: e.target.value })}
+              required
+            />
+
+            <label htmlFor="bio">Biografía (opcional)</label>
+            <textarea
+              id="bio"
+              value={form.bio}
+              onChange={(e) => setForm({ ...form, bio: e.target.value })}
+              rows={3}
+            />
+          </>
+        )}
 
         <button type="submit" disabled={enviando}>
           {enviando ? "Enviando..." : "Registrarme"}
@@ -91,6 +131,10 @@ export default function Registro() {
 
       {mensaje && <p role="status">{mensaje}</p>}
       {error && <p role="alert">{error}</p>}
+
+      <p style={{ marginTop: 16, fontSize: 14 }}>
+        ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+      </p>
     </main>
   );
 }
