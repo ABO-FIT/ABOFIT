@@ -1,7 +1,11 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 async function request<T>(path: string, method: string, body?: unknown, token?: string | null): Promise<T> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const esFormData = body instanceof FormData;
+  const headers: Record<string, string> = {};
+  if (!esFormData) {
+    headers["Content-Type"] = "application/json";
+  }
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
@@ -9,7 +13,7 @@ async function request<T>(path: string, method: string, body?: unknown, token?: 
   const response = await fetch(`${API_URL}${path}`, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: esFormData ? (body as FormData) : body !== undefined ? JSON.stringify(body) : undefined,
   });
 
   const data = await response.json();
@@ -98,4 +102,88 @@ export function actualizarPerfil(token: string, payload: ActualizarPerfilPayload
 
 export function cambiarPassword(token: string, passwordActual: string, passwordNueva: string) {
   return request<{ message: string }>("/api/profile/password", "PUT", { passwordActual, passwordNueva }, token);
+}
+
+export interface Goal {
+  key: string;
+  label: string;
+  shortLabel: string;
+  color: string;
+}
+
+export interface Plan {
+  key: string;
+  name: string;
+  price: number;
+  includesDiet: boolean;
+  description: string;
+}
+
+export interface DiaRutina {
+  id: string;
+  day: string;
+  focus: string;
+  exercises: string[];
+}
+
+export interface Comida {
+  meal: string;
+  items: string;
+}
+
+export interface Dieta {
+  nota: string;
+  comidas: Comida[];
+}
+
+export type MiPlanRespuesta =
+  | { asignado: false }
+  | { asignado: true; plan: Plan | null; goal: Goal | null; rutina: DiaRutina[]; dieta: Dieta | null };
+
+export function obtenerMiPlan(token: string) {
+  return request<MiPlanRespuesta>("/api/client/plan", "GET", undefined, token);
+}
+
+export type MisRutinasRespuesta =
+  | { asignado: false }
+  | { asignado: true; dias: DiaRutina[]; completados: string[]; porcentaje: number; semana: string };
+
+export function obtenerMisRutinas(token: string) {
+  return request<MisRutinasRespuesta>("/api/client/workouts", "GET", undefined, token);
+}
+
+export function marcarDiaRutina(token: string, diaId: string) {
+  return request<{ completado: boolean }>("/api/client/workouts/toggle", "POST", { diaId }, token);
+}
+
+export interface ProgressEntry {
+  id: number;
+  fecha: string;
+  peso: string | null;
+  cintura: string | null;
+  nota: string | null;
+  foto_path: string | null;
+}
+
+export function obtenerProgreso(token: string) {
+  return request<{ entradas: ProgressEntry[] }>("/api/client/progress", "GET", undefined, token);
+}
+
+export function registrarProgreso(token: string, datos: FormData) {
+  return request<{ id: number; message: string }>("/api/client/progress", "POST", datos, token);
+}
+
+export interface Mensaje {
+  id: number;
+  remitente: "cliente" | "entrenador";
+  texto: string;
+  created_at: string;
+}
+
+export function obtenerMensajes(token: string) {
+  return request<{ mensajes: Mensaje[] }>("/api/client/messages", "GET", undefined, token);
+}
+
+export function enviarMensaje(token: string, texto: string) {
+  return request<{ id: number }>("/api/client/messages", "POST", { texto }, token);
 }

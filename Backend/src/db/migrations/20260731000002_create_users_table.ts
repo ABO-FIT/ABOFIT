@@ -16,6 +16,20 @@ export async function up(knex: Knex): Promise<void> {
     table.string("bank_account", 50).nullable();
     table.string("bank_holder", 150).nullable();
     table.string("pay_phone", 30).nullable();
+    table.string("goal_key", 30).nullable();
+    table.string("plan_key", 10).nullable();
+    table.decimal("peso", 6, 2).nullable();
+    table.enu("peso_unidad", ["kg", "lb"]).notNullable().defaultTo("kg");
+    table.decimal("altura", 6, 2).nullable();
+    table.enu("altura_unidad", ["cm", "ft"]).notNullable().defaultTo("cm");
+    table.integer("edad").unsigned().nullable();
+    table.enu("sexo", ["male", "female"]).nullable();
+    table.string("nivel_actividad", 30).nullable();
+    table.decimal("cintura", 6, 2).nullable();
+    table.decimal("cadera", 6, 2).nullable();
+    table.integer("presion_sistolica").unsigned().nullable();
+    table.integer("presion_diastolica").unsigned().nullable();
+    table.date("fecha_inicio").nullable();
     table.timestamps(true, true);
   });
 }
