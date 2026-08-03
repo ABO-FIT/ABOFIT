@@ -369,3 +369,78 @@ export interface PanelEntrenador {
 export function obtenerPanelEntrenador(token: string) {
   return request<PanelEntrenador>("/api/trainer/panel", "GET", undefined, token);
 }
+
+export interface Producto {
+  id: number;
+  cat: string;
+  name: string;
+  price: number;
+  goals: string[];
+  recomendado: boolean;
+}
+
+export function obtenerCatalogo(token: string | null, filtros: { goal?: string; cat?: string; buscar?: string } = {}) {
+  const params = new URLSearchParams();
+  if (filtros.goal) params.set("goal", filtros.goal);
+  if (filtros.cat) params.set("cat", filtros.cat);
+  if (filtros.buscar) params.set("buscar", filtros.buscar);
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return request<{ productos: Producto[]; categorias: string[] }>(`/api/catalog${query}`, "GET", undefined, token);
+}
+
+export function obtenerProducto(id: number) {
+  return request<{ producto: Producto }>(`/api/catalog/${id}`, "GET");
+}
+
+export interface CartItem {
+  id: number;
+  name: string;
+  cat: string;
+  price: number;
+  qty: number;
+}
+
+export function obtenerCarrito(token: string) {
+  return request<{ items: CartItem[]; total: number }>("/api/cart", "GET", undefined, token);
+}
+
+export function agregarAlCarrito(token: string, productId: number, qty = 1) {
+  return request<{ message: string }>("/api/cart", "POST", { productId, qty }, token);
+}
+
+export function actualizarCantidadCarrito(token: string, productId: number, qty: number) {
+  return request<{ message: string }>(`/api/cart/${productId}`, "PUT", { qty }, token);
+}
+
+export function quitarDelCarrito(token: string, productId: number) {
+  return request<{ message: string }>(`/api/cart/${productId}`, "DELETE", undefined, token);
+}
+
+export interface Pedido {
+  id: number;
+  total: number;
+  estado: "pendiente" | "recibido" | "entregado" | "cancelado";
+  fecha: string;
+  items: { name: string; price: number; qty: number }[];
+}
+
+export function obtenerPedidos(token: string) {
+  return request<{ pedidos: Pedido[] }>("/api/orders", "GET", undefined, token);
+}
+
+export function crearPedido(token: string) {
+  return request<{ id: number; message: string }>("/api/orders", "POST", undefined, token);
+}
+
+export interface Factura {
+  id: number;
+  numero: string;
+  order_id: number;
+  monto: number;
+  estado: "pendiente" | "pagada";
+  fecha: string;
+}
+
+export function obtenerFacturas(token: string) {
+  return request<{ facturas: Factura[] }>("/api/invoices", "GET", undefined, token);
+}

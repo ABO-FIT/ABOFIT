@@ -7,6 +7,10 @@ const ENLACES = [
   { to: "/portal/mis-rutinas", label: "Mis Rutinas" },
   { to: "/portal/mi-progreso", label: "Mi Progreso" },
   { to: "/portal/contacto", label: "Contacto" },
+  { to: "/portal/catalogo", label: "Catálogo" },
+  { to: "/portal/carrito", label: "Carrito" },
+  { to: "/portal/pedidos", label: "Mis Pedidos" },
+  { to: "/portal/facturas", label: "Mis Facturas" },
   { to: "/perfil", label: "Mi Perfil" },
 ];
 

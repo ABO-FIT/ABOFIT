@@ -6,6 +6,10 @@ const ENLACES = [
   { to: "/entrenador/panel", label: "Panel" },
   { to: "/entrenador/clientes", label: "Mis Clientes" },
   { to: "/entrenador/mensajes", label: "Mensajes" },
+  { to: "/entrenador/catalogo", label: "Catálogo" },
+  { to: "/entrenador/carrito", label: "Carrito" },
+  { to: "/entrenador/pedidos", label: "Mis Pedidos" },
+  { to: "/entrenador/facturas", label: "Mis Facturas" },
   { to: "/perfil", label: "Mi Perfil" },
 ];
 

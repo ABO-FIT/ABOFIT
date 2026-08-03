@@ -12,6 +12,10 @@ import Panel from "./pages/entrenador/Panel";
 import MisClientes from "./pages/entrenador/MisClientes";
 import ClienteDetalle from "./pages/entrenador/ClienteDetalle";
 import Mensajes from "./pages/entrenador/Mensajes";
+import Catalogo from "./pages/shop/Catalogo";
+import Carrito from "./pages/shop/Carrito";
+import MisPedidos from "./pages/shop/MisPedidos";
+import MisFacturas from "./pages/shop/MisFacturas";
 import RutaProtegida from "./components/RutaProtegida";
 import PortalClienteLayout from "./components/PortalClienteLayout";
 import PortalEntrenadorLayout from "./components/PortalEntrenadorLayout";
@@ -46,6 +50,10 @@ export default function App() {
         <Route path="mis-rutinas" element={<MisRutinas />} />
         <Route path="mi-progreso" element={<MiProgreso />} />
         <Route path="contacto" element={<ContactoEntrenador />} />
+        <Route path="catalogo" element={<Catalogo />} />
+        <Route path="carrito" element={<Carrito />} />
+        <Route path="pedidos" element={<MisPedidos />} />
+        <Route path="facturas" element={<MisFacturas />} />
       </Route>
 
       <Route
@@ -61,6 +69,10 @@ export default function App() {
         <Route path="clientes" element={<MisClientes />} />
         <Route path="clientes/:id" element={<ClienteDetalle />} />
         <Route path="mensajes" element={<Mensajes />} />
+        <Route path="catalogo" element={<Catalogo />} />
+        <Route path="carrito" element={<Carrito />} />
+        <Route path="pedidos" element={<MisPedidos />} />
+        <Route path="facturas" element={<MisFacturas />} />
       </Route>
     </Routes>
   );
