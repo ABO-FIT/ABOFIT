@@ -15,7 +15,14 @@ export async function GET(_request: Request, { params }: { params: { id: string 
       cat: producto.cat,
       name: producto.name,
       price: producto.price,
+      stock: producto.stock,
+      imagePath: producto.image_path,
       goals: parsearJson<string[]>(producto.goals),
+      beneficios: producto.beneficios,
+      indicaciones: producto.indicaciones,
+      ingredientes: producto.ingredientes,
+      descripcion: producto.descripcion,
+      avisoSeguridad: producto.aviso_seguridad,
     },
   });
 }

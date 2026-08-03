@@ -6,11 +6,11 @@ import { parsearJson } from "@/lib/json";
 export async function GET(request: Request) {
   const sesion = obtenerSesion(request);
   const { searchParams } = new URL(request.url);
-  const goal = searchParams.get("goal");
+  const goalFiltro = searchParams.get("goal");
   const cat = searchParams.get("cat");
   const buscar = searchParams.get("buscar")?.trim().toLowerCase();
 
-  let query = db("products").select("id", "cat", "name", "price", "goals", "stock");
+  let query = db("products").select("id", "cat", "name", "price", "goals", "stock", "image_path");
 
   if (cat) {
     query = query.where({ cat });
@@ -22,13 +22,13 @@ export async function GET(request: Request) {
 
   const productos = await query.orderBy("name", "asc");
 
-  let goalUsuario: string | null = goal;
-  if (!goalUsuario && sesion?.rol === "Cliente") {
+  let goalUsuario: string | null = null;
+  if (sesion?.rol === "Cliente") {
     const usuario = await db("users").where({ id: sesion.userId }).first();
     goalUsuario = usuario?.goal_key ?? null;
   }
 
-  const resultado = productos.map((producto) => {
+  let resultado = productos.map((producto) => {
     const goals = parsearJson<string[]>(producto.goals);
     return {
       id: producto.id,
@@ -36,10 +36,15 @@ export async function GET(request: Request) {
       name: producto.name,
       price: producto.price,
       stock: producto.stock,
+      imagePath: producto.image_path,
       goals,
       recomendado: goalUsuario ? goals.includes(goalUsuario) : false,
     };
   });
+
+  if (goalFiltro) {
+    resultado = resultado.filter((p) => p.goals.includes(goalFiltro));
+  }
 
   resultado.sort((a, b) => Number(b.recomendado) - Number(a.recomendado));
 

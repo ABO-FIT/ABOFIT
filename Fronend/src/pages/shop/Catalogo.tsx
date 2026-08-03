@@ -1,19 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { agregarAlCarrito, obtenerCatalogo, type Producto } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
+import ProductModal from "../../components/ProductModal";
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+
+const OBJETIVOS = [
+  { key: "", label: "Todos los objetivos" },
+  { key: "masa", label: "Masa muscular" },
+  { key: "grasa", label: "Pérdida de grasa" },
+  { key: "mantenimiento", label: "Mantenimiento" },
+  { key: "rendimiento", label: "Rendimiento" },
+];
 
 export default function Catalogo() {
   const { token } = useAuth();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
+  const [goal, setGoal] = useState("");
   const [cat, setCat] = useState("");
   const [buscar, setBuscar] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
+  const [productoAbierto, setProductoAbierto] = useState<number | null>(null);
 
   function cargar() {
-    obtenerCatalogo(token, { cat: cat || undefined, buscar: buscar || undefined })
+    obtenerCatalogo(token, { goal: goal || undefined, cat: cat || undefined, buscar: buscar || undefined })
       .then((respuesta) => {
         setProductos(respuesta.productos);
         setCategorias(respuesta.categorias);
@@ -21,9 +34,9 @@ export default function Catalogo() {
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar el catálogo."));
   }
 
-  useEffect(cargar, [token, cat]);
+  useEffect(cargar, [token, goal, cat]);
 
-  function handleBuscarSubmit(event: React.FormEvent) {
+  function handleBuscarSubmit(event: FormEvent) {
     event.preventDefault();
     cargar();
   }
@@ -34,61 +47,82 @@ export default function Catalogo() {
     try {
       await agregarAlCarrito(token, productId);
       setMensaje("Producto agregado al carrito.");
+      setProductoAbierto(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
     }
   }
 
-  const recomendados = productos.filter((p) => p.recomendado);
-  const resto = productos.filter((p) => !p.recomendado);
-
   return (
     <main className="wide">
-      <h1>Catálogo</h1>
+      <span className="eyebrow">Suplementos ABOFIT</span>
+      <h1>Suplementos</h1>
 
       <form onSubmit={handleBuscarSubmit} style={{ flexDirection: "row", marginBottom: 16 }}>
         <input placeholder="Buscar producto..." value={buscar} onChange={(e) => setBuscar(e.target.value)} style={{ flex: 1 }} />
-        <select value={cat} onChange={(e) => setCat(e.target.value)}>
-          <option value="">Todas las categorías</option>
-          {categorias.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
         <button type="submit">Buscar</button>
       </form>
+
+      <span className="section-label">Filtra por objetivo</span>
+      <div className="pill-group" style={{ marginBottom: 16 }}>
+        {OBJETIVOS.map((o) => (
+          <button
+            key={o.key}
+            type="button"
+            className={`pill ${goal === o.key ? "active" : ""}`}
+            onClick={() => setGoal(o.key)}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+
+      <span className="section-label">Categorías</span>
+      <div className="pill-group" style={{ marginBottom: 24 }}>
+        <button type="button" className={`pill ${cat === "" ? "active" : ""}`} onClick={() => setCat("")}>
+          Todas
+        </button>
+        {categorias.map((c) => (
+          <button key={c} type="button" className={`pill ${cat === c ? "active" : ""}`} onClick={() => setCat(c)}>
+            {c}
+          </button>
+        ))}
+      </div>
 
       {mensaje && <p role="status">{mensaje}</p>}
       {error && <p role="alert">{error}</p>}
 
-      {recomendados.length > 0 && (
-        <>
-          <h2>Recomendados para ti</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, marginBottom: 24 }}>
-            {recomendados.map((producto) => (
-              <ProductoCard key={producto.id} producto={producto} onAgregar={handleAgregar} />
-            ))}
-          </div>
-        </>
-      )}
-
-      <h2>Todos los productos</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
-        {resto.map((producto) => (
-          <ProductoCard key={producto.id} producto={producto} onAgregar={handleAgregar} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
+        {productos.map((producto) => (
+          <button key={producto.id} type="button" className="product-card" onClick={() => setProductoAbierto(producto.id)}>
+            <div
+              className="product-image"
+              style={producto.imagePath ? { backgroundImage: `url(${API_URL}${producto.imagePath})` } : undefined}
+            >
+              {!producto.imagePath && producto.cat}
+            </div>
+            <div className="product-body">
+              {producto.recomendado && (
+                <span className="tag" style={{ background: "var(--oks)", color: "var(--ok)", marginBottom: 6 }}>
+                  Recomendado
+                </span>
+              )}
+              <h3 style={{ margin: "4px 0", fontSize: 16 }}>{producto.name}</h3>
+              <p style={{ color: "var(--accent2)", fontWeight: 700, fontSize: 18, margin: 0 }}>{money(producto.price)}</p>
+              <div className="product-tags">
+                {producto.goals.map((g) => (
+                  <span key={g} className="tag">{g}</span>
+                ))}
+              </div>
+            </div>
+          </button>
         ))}
+        {productos.length === 0 && <p style={{ color: "var(--muted)" }}>Sin productos que coincidan.</p>}
       </div>
-    </main>
-  );
-}
 
-function ProductoCard({ producto, onAgregar }: { producto: Producto; onAgregar: (id: number) => void }) {
-  return (
-    <div className="card">
-      {producto.recomendado && <span className="tag" style={{ background: "var(--oks)", color: "var(--ok)" }}>Recomendado</span>}
-      <h3 style={{ marginTop: 8 }}>{producto.name}</h3>
-      <p style={{ color: "var(--muted)", margin: 0 }}>{producto.cat}</p>
-      <p style={{ fontWeight: 700, fontSize: 18 }}>{money(producto.price)}</p>
-      <button type="button" onClick={() => onAgregar(producto.id)}>Agregar al carrito</button>
-    </div>
+      {productoAbierto && (
+        <ProductModal productId={productoAbierto} onClose={() => setProductoAbierto(null)} onAgregar={handleAgregar} />
+      )}
+    </main>
   );
 }

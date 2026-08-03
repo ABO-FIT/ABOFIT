@@ -377,8 +377,18 @@ export interface Producto {
   cat: string;
   name: string;
   price: number;
+  stock: number;
+  imagePath: string | null;
   goals: string[];
   recomendado: boolean;
+}
+
+export interface ProductoDetalle extends Omit<Producto, "recomendado"> {
+  beneficios: string | null;
+  indicaciones: string | null;
+  ingredientes: string | null;
+  descripcion: string | null;
+  avisoSeguridad: string | null;
 }
 
 export function obtenerCatalogo(token: string | null, filtros: { goal?: string; cat?: string; buscar?: string } = {}) {
@@ -391,7 +401,7 @@ export function obtenerCatalogo(token: string | null, filtros: { goal?: string; 
 }
 
 export function obtenerProducto(id: number) {
-  return request<{ producto: Producto }>(`/api/catalog/${id}`, "GET");
+  return request<{ producto: ProductoDetalle }>(`/api/catalog/${id}`, "GET");
 }
 
 export interface CartItem {
@@ -527,18 +537,54 @@ export interface ProductoAdmin {
   price: number;
   goals: string[];
   stock: number;
+  image_path: string | null;
+  beneficios: string | null;
+  indicaciones: string | null;
+  ingredientes: string | null;
+  descripcion: string | null;
+  aviso_seguridad: string | null;
+}
+
+export interface ProductoFormPayload {
+  cat: string;
+  name: string;
+  price: number;
+  stock: number;
+  goals: string[];
+  beneficios: string;
+  indicaciones: string;
+  ingredientes: string;
+  descripcion: string;
+  avisoSeguridad: string;
+  imagen?: File | null;
+}
+
+function construirFormDataProducto(payload: ProductoFormPayload): FormData {
+  const formData = new FormData();
+  formData.append("cat", payload.cat);
+  formData.append("name", payload.name);
+  formData.append("price", String(payload.price));
+  formData.append("stock", String(payload.stock));
+  formData.append("goals", JSON.stringify(payload.goals));
+  formData.append("beneficios", payload.beneficios);
+  formData.append("indicaciones", payload.indicaciones);
+  formData.append("ingredientes", payload.ingredientes);
+  formData.append("descripcion", payload.descripcion);
+  formData.append("avisoSeguridad", payload.avisoSeguridad);
+  if (payload.imagen) formData.append("imagen", payload.imagen);
+  return formData;
 }
 
 export function obtenerProductosAdmin(token: string) {
   return request<{ productos: ProductoAdmin[] }>("/api/admin/products", "GET", undefined, token);
 }
 
-export function crearProducto(token: string, payload: Omit<ProductoAdmin, "id">) {
-  return request<{ id: number; message: string }>("/api/admin/products", "POST", payload, token);
+export function crearProducto(token: string, payload: ProductoFormPayload) {
+  return request<{ id: number; message: string }>("/api/admin/products", "POST", construirFormDataProducto(payload), token);
 }
 
-export function editarProducto(token: string, id: number, payload: Omit<ProductoAdmin, "id">) {
-  return request<{ message: string }>(`/api/admin/products/${id}`, "PUT", payload, token);
+export function editarProducto(token: string, id: number, payload: ProductoFormPayload) {
+  return request<{ message: string }>(`/api/admin/products/${id}`, "PUT", construirFormDataProducto(payload), token);
 }
 
 export function eliminarProducto(token: string, id: number) {

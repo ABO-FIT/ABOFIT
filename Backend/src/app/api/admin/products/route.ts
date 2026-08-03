@@ -3,26 +3,8 @@ import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { parsearJson } from "@/lib/json";
-
-const OBJETIVOS_VALIDOS = ["masa", "grasa", "mantenimiento", "rendimiento"];
-
-function validarProducto(body: Record<string, unknown>) {
-  const { cat, name, price, goals, stock } = body;
-
-  if (typeof cat !== "string" || !cat.trim() || typeof name !== "string" || !name.trim()) {
-    return "Categoría y nombre son obligatorios.";
-  }
-  if (typeof price !== "number" || price < 0) {
-    return "El precio debe ser un número positivo.";
-  }
-  if (typeof stock !== "number" || stock < 0) {
-    return "El stock debe ser un número positivo.";
-  }
-  if (!Array.isArray(goals) || goals.length === 0 || goals.some((g) => !OBJETIVOS_VALIDOS.includes(g))) {
-    return "Debes indicar al menos un objetivo válido.";
-  }
-  return null;
-}
+import { guardarImagen } from "@/lib/upload";
+import { leerCamposFormulario } from "@/lib/productos";
 
 export async function GET(request: Request) {
   const sesion = obtenerSesion(request);
@@ -30,7 +12,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
-  const productos = await db("products").select("id", "cat", "name", "price", "goals", "stock").orderBy("name", "asc");
+  const productos = await db("products")
+    .select("id", "cat", "name", "price", "goals", "stock", "image_path", "beneficios", "indicaciones", "ingredientes", "descripcion", "aviso_seguridad")
+    .orderBy("name", "asc");
 
   return NextResponse.json({
     productos: productos.map((p) => ({ ...p, goals: parsearJson<string[]>(p.goals) })),
@@ -43,24 +27,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
-  const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!body) {
-    return NextResponse.json({ error: "Cuerpo de la solicitud inválido." }, { status: 400 });
+  const formData = await request.formData().catch(() => null);
+  if (!formData) {
+    return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
   }
 
-  const errorValidacion = validarProducto(body);
-  if (errorValidacion) {
-    return NextResponse.json({ error: errorValidacion }, { status: 400 });
+  const datos = leerCamposFormulario(formData);
+  if (typeof datos === "string") {
+    return NextResponse.json({ error: datos }, { status: 400 });
   }
 
-  const { cat, name, price, goals, stock } = body as { cat: string; name: string; price: number; goals: string[]; stock: number };
+  let imagePath: string | null = null;
+  const foto = formData.get("imagen");
+  if (foto instanceof File && foto.size > 0) {
+    try {
+      imagePath = await guardarImagen(foto, "products", "producto");
+    } catch (err) {
+      return NextResponse.json({ error: err instanceof Error ? err.message : "No se pudo guardar la imagen." }, { status: 400 });
+    }
+  }
 
   const [id] = await db("products").insert({
-    cat: cat.trim(),
-    name: name.trim(),
-    price,
-    stock,
-    goals: JSON.stringify(goals),
+    cat: datos.cat,
+    name: datos.name,
+    price: datos.price,
+    stock: datos.stock,
+    goals: JSON.stringify(datos.goals),
+    image_path: imagePath,
+    beneficios: datos.beneficios,
+    indicaciones: datos.indicaciones,
+    ingredientes: datos.ingredientes,
+    descripcion: datos.descripcion,
+    aviso_seguridad: datos.avisoSeguridad,
   });
 
   const admin = await db("users").where({ id: sesion.userId }).first();
@@ -69,9 +67,9 @@ export async function POST(request: Request) {
     adminNombre: `${admin.nombre} ${admin.apellido}`,
     targetType: "producto",
     targetId: id,
-    targetNombre: name,
+    targetNombre: datos.name,
     accion: "crear",
-    despues: { cat, name, price, goals, stock },
+    despues: datos,
   });
 
   return NextResponse.json({ id, message: "Producto creado correctamente." }, { status: 201 });
