@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { solicitarRecuperarPassword } from "../api/client";
-import logo from "../assets/brand/logo-onlight.png";
+import AuthLayout from "../components/AuthLayout";
 
 export default function OlvidePassword() {
   const [identificador, setIdentificador] = useState("");
@@ -26,10 +26,7 @@ export default function OlvidePassword() {
   }
 
   return (
-    <main>
-      <div className="brand">
-        <img src={logo} alt="ABOFIT" />
-      </div>
+    <AuthLayout>
       <h1>Recuperar contraseña</h1>
       <form onSubmit={handleSubmit}>
         <label htmlFor="identificador">Usuario o correo</label>
@@ -40,17 +37,17 @@ export default function OlvidePassword() {
           required
         />
 
-        <button type="submit" disabled={enviando}>
+        <button type="submit" className="block" disabled={enviando}>
           {enviando ? "Enviando..." : "Enviar enlace"}
         </button>
       </form>
 
-      {mensaje && <p role="status">{mensaje}</p>}
-      {error && <p role="alert">{error}</p>}
+      {mensaje && <p role="status" style={{ marginTop: 12 }}>{mensaje}</p>}
+      {error && <p role="alert" style={{ marginTop: 12 }}>{error}</p>}
 
-      <p style={{ marginTop: 16, fontSize: 14 }}>
+      <div className="auth-links" style={{ justifyContent: "center" }}>
         <Link to="/login">Volver a iniciar sesión</Link>
-      </p>
-    </main>
+      </div>
+    </AuthLayout>
   );
 }

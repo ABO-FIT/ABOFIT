@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { obtenerPanelAdmin, type PanelAdmin } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 
-const COLORES = ["violet", "orange", "blue", "red", "green"];
+const COLORES = [
+  { clase: "violet", hex: "#6366f1" },
+  { clase: "orange", hex: "#f59e0b" },
+  { clase: "blue", hex: "#0ea5e9" },
+  { clase: "red", hex: "#ef4444" },
+  { clase: "green", hex: "#22c55e" },
+];
 
 export default function Panel() {
   const { token } = useAuth();
@@ -29,15 +35,22 @@ export default function Panel() {
 
   return (
     <main className="wide">
-      <span className="eyebrow">Sistema</span>
-      <h1>Panel de Administración</h1>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-        {tarjetas.map((tarjeta, i) => (
-          <div key={tarjeta.label} className={`card stat-card ${COLORES[i % COLORES.length]}`}>
-            <p style={{ color: "var(--muted)", margin: 0, fontSize: 14 }}>{tarjeta.label}</p>
-            <p style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>{tarjeta.valor}</p>
-          </div>
-        ))}
+      <div className="page-h">
+        <div>
+          <span className="eyebrow">Sistema</span>
+          <h1>Panel de Administración</h1>
+        </div>
+      </div>
+      <div className="grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16, marginTop: 16 }}>
+        {tarjetas.map((tarjeta, i) => {
+          const color = COLORES[i % COLORES.length];
+          return (
+            <div key={tarjeta.label} className={`card stat-card ${color.clase}`}>
+              <div className="n" style={{ color: color.hex }}>{tarjeta.valor}</div>
+              <div className="k">{tarjeta.label}</div>
+            </div>
+          );
+        })}
       </div>
     </main>
   );

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { iniciarSesion as iniciarSesionApi } from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import logo from "../assets/brand/logo-onlight.png";
+import AuthLayout from "../components/AuthLayout";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -38,42 +38,43 @@ export default function Login() {
   }
 
   return (
-    <main>
-      <div className="brand">
-        <img src={logo} alt="ABOFIT" />
-      </div>
+    <AuthLayout>
       <h1>Iniciar sesión</h1>
       <form onSubmit={handleSubmit}>
-        <label htmlFor="identificador">Usuario o correo</label>
-        <input
-          id="identificador"
-          value={identificador}
-          onChange={(e) => setIdentificador(e.target.value)}
-          required
-        />
+        <div className="field">
+          <label htmlFor="identificador">Usuario o correo</label>
+          <input
+            id="identificador"
+            className="inp"
+            value={identificador}
+            onChange={(e) => setIdentificador(e.target.value)}
+            required
+          />
+        </div>
 
-        <label htmlFor="password">Contraseña</label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="field">
+          <label htmlFor="password">Contraseña</label>
+          <input
+            id="password"
+            className="inp"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
 
-        <button type="submit" disabled={enviando}>
-          {enviando ? "Ingresando..." : "Ingresar"}
+        <button type="submit" className="block" disabled={enviando}>
+          {enviando ? "Ingresando..." : "Entrar"}
         </button>
       </form>
 
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert" style={{ marginTop: 12 }}>{error}</p>}
 
-      <p style={{ marginTop: 16, fontSize: 14 }}>
+      <div className="auth-links">
         <Link to="/olvide-password">¿Olvidaste tu contraseña?</Link>
-      </p>
-      <p style={{ marginTop: 8, fontSize: 14 }}>
-        ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
-      </p>
-    </main>
+        <Link to="/registro">Crear cuenta</Link>
+      </div>
+    </AuthLayout>
   );
 }

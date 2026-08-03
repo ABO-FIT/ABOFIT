@@ -3,6 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { marcarNotificacionLeida, marcarTodasLeidas, obtenerNotificaciones, type Notificacion } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
+function BellSVG() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
 export default function NotificationBell() {
   const { token } = useAuth();
   const navigate = useNavigate();
@@ -37,10 +46,6 @@ export default function NotificationBell() {
     return () => document.removeEventListener("mousedown", handleClickFuera);
   }, []);
 
-  async function handleAbrir() {
-    setAbierto((v) => !v);
-  }
-
   async function handleClickNotificacion(n: Notificacion) {
     if (!token) return;
     if (!n.leido) {
@@ -59,65 +64,23 @@ export default function NotificationBell() {
 
   return (
     <div ref={contenedorRef} style={{ position: "relative" }}>
-      <button
-        type="button"
-        onClick={handleAbrir}
-        aria-label="Notificaciones"
-        style={{
-          background: "transparent",
-          border: "none",
-          color: "inherit",
-          fontSize: 20,
-          cursor: "pointer",
-          position: "relative",
-          padding: 6,
-        }}
-      >
-        🔔
-        {noLeidas > 0 && (
-          <span
-            style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              background: "var(--accent2)",
-              color: "#fff",
-              borderRadius: "999px",
-              fontSize: 11,
-              fontWeight: 700,
-              padding: "1px 5px",
-              lineHeight: "14px",
-            }}
-          >
-            {noLeidas}
-          </span>
-        )}
+      <button type="button" onClick={() => setAbierto((v) => !v)} aria-label="Notificaciones" className="top-icon">
+        <BellSVG />
+        {noLeidas > 0 && <span className="top-badge">{noLeidas}</span>}
       </button>
 
       {abierto && (
-        <div
-          className="card"
-          style={{
-            position: "absolute",
-            right: 0,
-            top: "calc(100% + 8px)",
-            width: 320,
-            maxHeight: 400,
-            overflowY: "auto",
-            zIndex: 20,
-            padding: 12,
-          }}
-        >
+        <div className="notif-drop">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <strong>Notificaciones</strong>
+            <strong style={{ fontSize: 14 }}>Notificaciones</strong>
             {noLeidas > 0 && (
-              <button type="button" className="secondary" style={{ fontSize: 12, padding: "4px 8px" }} onClick={handleMarcarTodas}>
+              <button type="button" className="secondary" style={{ fontSize: 11, padding: "4px 8px" }} onClick={handleMarcarTodas}>
                 Marcar todas leídas
               </button>
             )}
           </div>
 
-          {notificaciones.length === 0 && <p style={{ color: "var(--muted)", fontSize: 14 }}>Sin notificaciones.</p>}
+          {notificaciones.length === 0 && <p style={{ color: "var(--muted)", fontSize: 13 }}>Sin notificaciones.</p>}
 
           {notificaciones.map((n) => (
             <button
@@ -130,14 +93,16 @@ export default function NotificationBell() {
                 textAlign: "left",
                 background: n.leido ? "transparent" : "var(--oks)",
                 border: "none",
+                borderRadius: 8,
                 borderBottom: "1px solid var(--line)",
-                padding: "8px 4px",
+                padding: "8px 6px",
                 cursor: "pointer",
                 color: "var(--text)",
+                fontWeight: 400,
               }}
             >
-              <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>{n.titulo}</p>
-              {n.subtitulo && <p style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>{n.subtitulo}</p>}
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 13 }}>{n.titulo}</p>
+              {n.subtitulo && <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>{n.subtitulo}</p>}
               <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>{new Date(n.created_at).toLocaleString("es-DO")}</p>
             </button>
           ))}

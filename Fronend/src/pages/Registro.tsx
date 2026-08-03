@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { registrarUsuario, type RegistroPayload, type TipoRegistro } from "../api/client";
-import logo from "../assets/brand/logo-onlight.png";
+import AuthLayout from "../components/AuthLayout";
 
 const ESTADO_INICIAL: RegistroPayload = {
   nombre: "",
@@ -13,6 +13,11 @@ const ESTADO_INICIAL: RegistroPayload = {
   especialidad: "",
   bio: "",
 };
+
+const ROLES: { tipo: TipoRegistro; icono: string; titulo: string; sub: string }[] = [
+  { tipo: "Cliente", icono: "◉", titulo: "Cliente", sub: "Quiero entrenar y comprar suplementos." },
+  { tipo: "Entrenador", icono: "◈", titulo: "Entrenador", sub: "Quiero gestionar clientes y planes." },
+];
 
 export default function Registro() {
   const [form, setForm] = useState<RegistroPayload>(ESTADO_INICIAL);
@@ -38,27 +43,24 @@ export default function Registro() {
   }
 
   return (
-    <main>
-      <div className="brand">
-        <img src={logo} alt="ABOFIT" />
-      </div>
+    <AuthLayout>
       <h1>Crear cuenta</h1>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        {(["Cliente", "Entrenador"] as TipoRegistro[]).map((tipo) => (
-          <button
-            key={tipo}
-            type="button"
-            className={form.tipo === tipo ? "" : "secondary"}
-            style={{ flex: 1 }}
-            onClick={() => setForm({ ...form, tipo })}
+      <div className="role-cards">
+        {ROLES.map((r) => (
+          <div
+            key={r.tipo}
+            className={`role-card ${form.tipo === r.tipo ? "selected" : ""}`}
+            onClick={() => setForm({ ...form, tipo: r.tipo })}
           >
-            {tipo}
-          </button>
+            <div className="rc-icon">{r.icono}</div>
+            <div className="rc-title">{r.titulo}</div>
+            <div className="rc-sub">{r.sub}</div>
+          </div>
         ))}
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ marginTop: 16 }}>
         <label htmlFor="nombre">Nombre</label>
         <input
           id="nombre"
@@ -124,17 +126,17 @@ export default function Registro() {
           </>
         )}
 
-        <button type="submit" disabled={enviando}>
+        <button type="submit" className="block" disabled={enviando}>
           {enviando ? "Enviando..." : "Registrarme"}
         </button>
       </form>
 
-      {mensaje && <p role="status">{mensaje}</p>}
-      {error && <p role="alert">{error}</p>}
+      {mensaje && <p role="status" style={{ marginTop: 12 }}>{mensaje}</p>}
+      {error && <p role="alert" style={{ marginTop: 12 }}>{error}</p>}
 
-      <p style={{ marginTop: 16, fontSize: 14 }}>
-        ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
-      </p>
-    </main>
+      <div className="auth-links" style={{ justifyContent: "center" }}>
+        <span>¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link></span>
+      </div>
+    </AuthLayout>
   );
 }

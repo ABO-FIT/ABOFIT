@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { obtenerPanelEntrenador, type PanelEntrenador } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 
-const COLORES = ["violet", "orange", "blue", "green"];
-
 export default function Panel() {
   const { token } = useAuth();
   const [datos, setDatos] = useState<PanelEntrenador | null>(null);
@@ -36,20 +34,27 @@ export default function Panel() {
     { label: "Total de clientes", valor: datos.totalClientes },
     { label: "Clientes en Plan B", valor: datos.clientesPlanB },
     { label: "Mensajes sin leer", valor: datos.mensajesSinLeer },
-    { label: "Cumplimiento promedio semanal", valor: `${datos.cumplimientoPromedio}%` },
   ];
 
   return (
     <main className="wide">
       <span className="eyebrow">Sistema</span>
       <h1>Panel</h1>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-        {tarjetas.map((tarjeta, i) => (
-          <div key={tarjeta.label} className={`card stat-card ${COLORES[i % COLORES.length]}`}>
-            <p style={{ color: "var(--muted)", margin: 0, fontSize: 14 }}>{tarjeta.label}</p>
-            <p style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>{tarjeta.valor}</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 16 }}>
+        {tarjetas.map((tarjeta) => (
+          <div key={tarjeta.label} className="card stat-card">
+            <div className="n">{tarjeta.valor}</div>
+            <div className="k">{tarjeta.label}</div>
           </div>
         ))}
+
+        <div className="card stat-card">
+          <div className="n">{datos.cumplimientoPromedio}%</div>
+          <div className="k">Cumplimiento promedio</div>
+          <div className="energy" style={{ marginTop: 8 }}>
+            <span style={{ width: `${datos.cumplimientoPromedio}%` }} />
+          </div>
+        </div>
       </div>
     </main>
   );
