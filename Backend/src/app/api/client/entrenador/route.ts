@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
+import { crearNotificacion } from "@/lib/notificaciones";
 
 export async function GET(request: Request) {
   const sesion = obtenerSesion(request);
@@ -47,6 +48,15 @@ export async function POST(request: Request) {
   }
 
   await db("users").where({ id: sesion.userId }).update({ trainer_id: entrenador.id });
+
+  const cliente = await db("users").where({ id: sesion.userId }).first();
+  await crearNotificacion({
+    userId: entrenador.id,
+    tipo: "cliente_vinculado",
+    titulo: `${cliente.nombre} ${cliente.apellido} se vinculó contigo`,
+    subtitulo: "Nuevo cliente por asignar plan y objetivo.",
+    link: "/entrenador/clientes",
+  });
 
   return NextResponse.json({ message: "Entrenador vinculado correctamente." });
 }

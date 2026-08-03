@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { obtenerClienteDelEntrenador } from "@/lib/trainerClient";
+import { crearNotificacion } from "@/lib/notificaciones";
 
 export async function GET(request: Request, { params }: { params: { clientId: string } }) {
   const sesion = obtenerSesion(request);
@@ -45,6 +46,15 @@ export async function POST(request: Request, { params }: { params: { clientId: s
   }
 
   const [id] = await db("messages").insert({ client_id: clientId, remitente: "entrenador", texto, leido: true });
+
+  const entrenador = await db("users").where({ id: sesion.userId }).first();
+  await crearNotificacion({
+    userId: clientId,
+    tipo: "mensaje",
+    titulo: `Mensaje de ${entrenador.nombre} ${entrenador.apellido}`,
+    subtitulo: texto.slice(0, 80),
+    link: "/portal/contacto",
+  });
 
   return NextResponse.json({ id }, { status: 201 });
 }

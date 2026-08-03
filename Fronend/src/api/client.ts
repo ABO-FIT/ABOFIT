@@ -636,3 +636,25 @@ export interface RegistroAuditoria {
 export function obtenerAuditoria(token: string) {
   return request<{ registros: RegistroAuditoria[] }>("/api/admin/auditoria", "GET", undefined, token);
 }
+
+export interface Notificacion {
+  id: number;
+  tipo: string;
+  titulo: string;
+  subtitulo: string | null;
+  link: string | null;
+  leido: boolean;
+  created_at: string;
+}
+
+export function obtenerNotificaciones(token: string) {
+  return request<{ notificaciones: Notificacion[]; noLeidas: number }>("/api/notifications", "GET", undefined, token);
+}
+
+export function marcarNotificacionLeida(token: string, id: number) {
+  return request<{ message: string }>(`/api/notifications/${id}/leido`, "PUT", undefined, token);
+}
+
+export function marcarTodasLeidas(token: string) {
+  return request<{ message: string }>("/api/notifications/marcar-todas", "PUT", undefined, token);
+}

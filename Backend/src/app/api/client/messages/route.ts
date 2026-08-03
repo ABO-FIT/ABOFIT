@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
+import { crearNotificacion } from "@/lib/notificaciones";
 
 export async function GET(request: Request) {
   const sesion = obtenerSesion(request);
@@ -34,6 +35,17 @@ export async function POST(request: Request) {
     remitente: "cliente",
     texto,
   });
+
+  const cliente = await db("users").where({ id: sesion.userId }).first();
+  if (cliente?.trainer_id) {
+    await crearNotificacion({
+      userId: cliente.trainer_id,
+      tipo: "mensaje",
+      titulo: `Mensaje de ${cliente.nombre} ${cliente.apellido}`,
+      subtitulo: texto.slice(0, 80),
+      link: "/entrenador/mensajes",
+    });
+  }
 
   return NextResponse.json({ id }, { status: 201 });
 }

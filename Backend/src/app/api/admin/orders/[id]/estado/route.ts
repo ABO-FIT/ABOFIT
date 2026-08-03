@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { registrarAuditoria } from "@/lib/auditoria";
+import { crearNotificacion } from "@/lib/notificaciones";
+
+const ETIQUETAS_ESTADO: Record<string, string> = {
+  pendiente: "pendiente",
+  recibido: "recibido",
+  entregado: "entregado",
+  cancelado: "cancelado",
+};
 
 const ESTADOS_VALIDOS = ["pendiente", "recibido", "entregado", "cancelado"];
 
@@ -71,6 +79,30 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   });
 
   const numeroFactura: string | null = facturaGenerada ? (facturaGenerada as { id: number; numero: string }).numero : null;
+
+  const comprador = await db("users")
+    .join("roles", "roles.id", "users.rol_id")
+    .where("users.id", pedido.user_id)
+    .select("roles.nombre as rol")
+    .first();
+  const base = comprador?.rol === "Entrenador" ? "/entrenador" : "/portal";
+
+  await crearNotificacion({
+    userId: pedido.user_id,
+    tipo: "pedido",
+    titulo: `Tu pedido #${orderId} está ${ETIQUETAS_ESTADO[estado] ?? estado}`,
+    link: `${base}/pedidos`,
+  });
+
+  if (numeroFactura) {
+    await crearNotificacion({
+      userId: pedido.user_id,
+      tipo: "factura",
+      titulo: `Factura ${numeroFactura} generada`,
+      subtitulo: "Ya puedes verla en Mis Facturas.",
+      link: `${base}/facturas`,
+    });
+  }
 
   return NextResponse.json({
     message: numeroFactura

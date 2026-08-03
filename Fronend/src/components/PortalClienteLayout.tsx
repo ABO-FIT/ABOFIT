@@ -1,61 +1,17 @@
-import { NavLink, Outlet } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import logo from "../assets/brand/logo-onlight.png";
+import SidebarLayout, { type EnlaceNav } from "./SidebarLayout";
 
-const ENLACES = [
-  { to: "/portal/mi-plan", label: "Mi Plan" },
-  { to: "/portal/mis-rutinas", label: "Mis Rutinas" },
-  { to: "/portal/mi-progreso", label: "Mi Progreso" },
-  { to: "/portal/contacto", label: "Contacto" },
-  { to: "/portal/catalogo", label: "Catálogo" },
-  { to: "/portal/carrito", label: "Carrito" },
-  { to: "/portal/pedidos", label: "Mis Pedidos" },
-  { to: "/portal/facturas", label: "Mis Facturas" },
-  { to: "/perfil", label: "Mi Perfil" },
+const ENLACES: EnlaceNav[] = [
+  { to: "/portal/mi-plan", label: "Mi Plan", icon: "📋" },
+  { to: "/portal/mis-rutinas", label: "Mis Rutinas", icon: "🏋️" },
+  { to: "/portal/mi-progreso", label: "Mi Progreso", icon: "📈" },
+  { to: "/portal/contacto", label: "Contacto", icon: "✉️" },
+  { to: "/portal/catalogo", label: "Catálogo", icon: "🛒" },
+  { to: "/portal/carrito", label: "Carrito", icon: "🧺" },
+  { to: "/portal/pedidos", label: "Mis Pedidos", icon: "📦" },
+  { to: "/portal/facturas", label: "Mis Facturas", icon: "🧾" },
+  { to: "/perfil", label: "Mi Perfil", icon: "⚙️" },
 ];
 
 export default function PortalClienteLayout() {
-  const { cerrarSesion, usuario } = useAuth();
-
-  return (
-    <div>
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "12px 24px",
-          background: "var(--card)",
-          borderBottom: "1px solid var(--line)",
-        }}
-      >
-        <img src={logo} alt="ABOFIT" style={{ height: 32 }} />
-
-        <nav style={{ display: "flex", gap: 16 }}>
-          {ENLACES.map((enlace) => (
-            <NavLink
-              key={enlace.to}
-              to={enlace.to}
-              style={({ isActive }) => ({
-                textDecoration: "none",
-                fontWeight: 600,
-                color: isActive ? "var(--accent2)" : "var(--muted)",
-              })}
-            >
-              {enlace.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 14, color: "var(--muted)" }}>{usuario?.nombre}</span>
-          <button type="button" className="secondary" onClick={cerrarSesion}>
-            Salir
-          </button>
-        </div>
-      </header>
-
-      <Outlet />
-    </div>
-  );
+  return <SidebarLayout enlaces={ENLACES} />;
 }

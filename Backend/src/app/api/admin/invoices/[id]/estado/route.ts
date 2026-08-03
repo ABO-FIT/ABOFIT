@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { registrarAuditoria } from "@/lib/auditoria";
+import { crearNotificacion } from "@/lib/notificaciones";
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const sesion = obtenerSesion(request);
@@ -35,6 +36,22 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     antes: { estado: factura.estado },
     despues: { estado },
   });
+
+  if (estado === "pagada" && factura.estado !== "pagada") {
+    const comprador = await db("users")
+      .join("roles", "roles.id", "users.rol_id")
+      .where("users.id", factura.user_id)
+      .select("roles.nombre as rol")
+      .first();
+    const base = comprador?.rol === "Entrenador" ? "/entrenador" : "/portal";
+
+    await crearNotificacion({
+      userId: factura.user_id,
+      tipo: "factura",
+      titulo: `Factura ${factura.numero} marcada como pagada`,
+      link: `${base}/facturas`,
+    });
+  }
 
   return NextResponse.json({ message: "Factura actualizada correctamente." });
 }

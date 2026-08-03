@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { obtenerPanelEntrenador, type PanelEntrenador } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 
+const COLORES = ["violet", "orange", "blue", "green"];
+
 export default function Panel() {
   const { token } = useAuth();
   const [datos, setDatos] = useState<PanelEntrenador | null>(null);
@@ -39,10 +41,11 @@ export default function Panel() {
 
   return (
     <main className="wide">
+      <span className="eyebrow">Sistema</span>
       <h1>Panel</h1>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-        {tarjetas.map((tarjeta) => (
-          <div key={tarjeta.label} className="card">
+        {tarjetas.map((tarjeta, i) => (
+          <div key={tarjeta.label} className={`card stat-card ${COLORES[i % COLORES.length]}`}>
             <p style={{ color: "var(--muted)", margin: 0, fontSize: 14 }}>{tarjeta.label}</p>
             <p style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>{tarjeta.valor}</p>
           </div>
