@@ -76,6 +76,7 @@ export interface Perfil {
   bank_account: string | null;
   bank_holder: string | null;
   pay_phone: string | null;
+  gym_id: number | null;
   rol: string;
 }
 
@@ -94,6 +95,7 @@ export interface ActualizarPerfilPayload {
   bankAccount?: string;
   bankHolder?: string;
   payPhone?: string;
+  gymId?: number;
 }
 
 export function actualizarPerfil(token: string, payload: ActualizarPerfilPayload) {
@@ -443,4 +445,194 @@ export interface Factura {
 
 export function obtenerFacturas(token: string) {
   return request<{ facturas: Factura[] }>("/api/invoices", "GET", undefined, token);
+}
+
+// ---- Administración ----
+
+export interface UsuarioAdmin {
+  id: number;
+  nombre: string;
+  apellido: string;
+  correo: string;
+  usuario: string;
+  activo: boolean;
+  rol: string;
+}
+
+export function obtenerUsuarios(token: string, filtros: { rol?: string; buscar?: string } = {}) {
+  const params = new URLSearchParams();
+  if (filtros.rol) params.set("rol", filtros.rol);
+  if (filtros.buscar) params.set("buscar", filtros.buscar);
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return request<{ usuarios: UsuarioAdmin[] }>(`/api/admin/users${query}`, "GET", undefined, token);
+}
+
+export interface NuevoUsuarioAdminPayload {
+  nombre: string;
+  apellido: string;
+  correo: string;
+  usuario: string;
+  telefono: string;
+  rol: string;
+}
+
+export function crearUsuarioAdmin(token: string, payload: NuevoUsuarioAdminPayload) {
+  return request<{ message: string }>("/api/admin/users", "POST", payload, token);
+}
+
+export function editarUsuarioAdmin(token: string, id: number, payload: { nombre: string; apellido: string; correo: string; telefono: string }) {
+  return request<{ message: string }>(`/api/admin/users/${id}`, "PUT", payload, token);
+}
+
+export function cambiarEstadoUsuario(token: string, id: number, activo: boolean) {
+  return request<{ message: string }>(`/api/admin/users/${id}/estado`, "PUT", { activo }, token);
+}
+
+export function cambiarRolUsuario(token: string, id: number, rol: string) {
+  return request<{ message: string }>(`/api/admin/users/${id}/rol`, "PUT", { rol }, token);
+}
+
+export interface Gimnasio {
+  id: number;
+  name: string;
+  city: string;
+  address: string | null;
+  phone: string | null;
+}
+
+export function obtenerGimnasios(token: string) {
+  return request<{ gimnasios: Gimnasio[] }>("/api/gyms", "GET", undefined, token);
+}
+
+export function obtenerGimnasiosAdmin(token: string) {
+  return request<{ gimnasios: Gimnasio[] }>("/api/admin/gyms", "GET", undefined, token);
+}
+
+export function crearGimnasio(token: string, payload: Omit<Gimnasio, "id">) {
+  return request<{ id: number; message: string }>("/api/admin/gyms", "POST", payload, token);
+}
+
+export function editarGimnasio(token: string, id: number, payload: Omit<Gimnasio, "id">) {
+  return request<{ message: string }>(`/api/admin/gyms/${id}`, "PUT", payload, token);
+}
+
+export function eliminarGimnasio(token: string, id: number) {
+  return request<{ message: string }>(`/api/admin/gyms/${id}`, "DELETE", undefined, token);
+}
+
+export interface ProductoAdmin {
+  id: number;
+  cat: string;
+  name: string;
+  price: number;
+  goals: string[];
+  stock: number;
+}
+
+export function obtenerProductosAdmin(token: string) {
+  return request<{ productos: ProductoAdmin[] }>("/api/admin/products", "GET", undefined, token);
+}
+
+export function crearProducto(token: string, payload: Omit<ProductoAdmin, "id">) {
+  return request<{ id: number; message: string }>("/api/admin/products", "POST", payload, token);
+}
+
+export function editarProducto(token: string, id: number, payload: Omit<ProductoAdmin, "id">) {
+  return request<{ message: string }>(`/api/admin/products/${id}`, "PUT", payload, token);
+}
+
+export function eliminarProducto(token: string, id: number) {
+  return request<{ message: string }>(`/api/admin/products/${id}`, "DELETE", undefined, token);
+}
+
+export interface PlanAdmin {
+  key: string;
+  name: string;
+  price: number;
+  includes_diet: boolean;
+  description: string;
+}
+
+export function obtenerPlanesAdmin(token: string) {
+  return request<{ planes: PlanAdmin[] }>("/api/admin/plans", "GET", undefined, token);
+}
+
+export function editarPlan(token: string, key: string, payload: { name: string; price: number; includesDiet: boolean; description: string }) {
+  return request<{ message: string }>(`/api/admin/plans/${key}`, "PUT", payload, token);
+}
+
+export interface PedidoAdmin {
+  id: number;
+  total: number;
+  estado: Pedido["estado"];
+  fecha: string;
+  cliente: { nombre: string; apellido: string; correo: string; telefono: string };
+  items: { name: string; price: number; qty: number }[];
+}
+
+export function obtenerPedidosAdmin(token: string, estado?: string) {
+  const query = estado ? `?estado=${estado}` : "";
+  return request<{ pedidos: PedidoAdmin[] }>(`/api/admin/orders${query}`, "GET", undefined, token);
+}
+
+export function cambiarEstadoPedido(token: string, id: number, estado: PedidoAdmin["estado"]) {
+  return request<{ message: string }>(`/api/admin/orders/${id}/estado`, "PUT", { estado }, token);
+}
+
+export interface FacturaAdmin {
+  id: number;
+  numero: string;
+  orderId: number;
+  monto: number;
+  estado: "pendiente" | "pagada";
+  fecha: string;
+  cliente: { nombre: string; apellido: string; correo: string };
+}
+
+export function obtenerFacturasAdmin(token: string, estado?: string) {
+  const query = estado ? `?estado=${estado}` : "";
+  return request<{ facturas: FacturaAdmin[] }>(`/api/admin/invoices${query}`, "GET", undefined, token);
+}
+
+export function cambiarEstadoFactura(token: string, id: number, estado: "pendiente" | "pagada") {
+  return request<{ message: string }>(`/api/admin/invoices/${id}/estado`, "PUT", { estado }, token);
+}
+
+export interface ReporteVentas {
+  totalHistorico: number;
+  totalUltimos30Dias: number;
+  pedidosPorEstado: { estado: string; total: number }[];
+  topProductos: { name: string; cantidad: number }[];
+}
+
+export function obtenerReporteVentas(token: string) {
+  return request<ReporteVentas>("/api/admin/reportes/ventas", "GET", undefined, token);
+}
+
+export interface PanelAdmin {
+  usuariosPorRol: { rol: string; total: number }[];
+  totalGimnasios: number;
+  totalProductos: number;
+  pedidosPendientes: number;
+  facturasPendientes: number;
+}
+
+export function obtenerPanelAdmin(token: string) {
+  return request<PanelAdmin>("/api/admin/panel", "GET", undefined, token);
+}
+
+export interface RegistroAuditoria {
+  id: number;
+  admin_nombre: string;
+  target_type: string;
+  target_id: number;
+  target_nombre: string | null;
+  accion: string;
+  antes: unknown;
+  despues: unknown;
+  created_at: string;
+}
+
+export function obtenerAuditoria(token: string) {
+  return request<{ registros: RegistroAuditoria[] }>("/api/admin/auditoria", "GET", undefined, token);
 }

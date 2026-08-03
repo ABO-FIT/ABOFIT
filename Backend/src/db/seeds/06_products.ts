@@ -26,6 +26,6 @@ export async function seed(knex: Knex): Promise<void> {
   if (Number(existentes?.total ?? 0) > 0) return;
 
   for (const producto of PRODUCTS) {
-    await knex("products").insert({ ...producto, goals: JSON.stringify(producto.goals) });
+    await knex("products").insert({ ...producto, goals: JSON.stringify(producto.goals), stock: 50 });
   }
 }

@@ -37,10 +37,18 @@ export async function POST(request: Request) {
   const items = await db("cart_items")
     .join("products", "products.id", "cart_items.product_id")
     .where("cart_items.user_id", sesion.userId)
-    .select("products.id as product_id", "products.name", "products.price", "cart_items.qty");
+    .select("products.id as product_id", "products.name", "products.price", "products.stock", "cart_items.qty");
 
   if (items.length === 0) {
     return NextResponse.json({ error: "Tu carrito está vacío." }, { status: 400 });
+  }
+
+  const sinStock = items.find((item) => item.qty > item.stock);
+  if (sinStock) {
+    return NextResponse.json(
+      { error: `No hay suficiente existencia de "${sinStock.name}" (disponible: ${sinStock.stock}).` },
+      { status: 400 },
+    );
   }
 
   const total = items.reduce((suma, item) => suma + item.price * item.qty, 0);
@@ -57,6 +65,10 @@ export async function POST(request: Request) {
         qty: item.qty,
       })),
     );
+
+    for (const item of items) {
+      await trx("products").where({ id: item.product_id }).decrement("stock", item.qty);
+    }
 
     await trx("cart_items").where({ user_id: sesion.userId }).delete();
 

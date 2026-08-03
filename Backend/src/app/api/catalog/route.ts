@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   const cat = searchParams.get("cat");
   const buscar = searchParams.get("buscar")?.trim().toLowerCase();
 
-  let query = db("products").select("id", "cat", "name", "price", "goals");
+  let query = db("products").select("id", "cat", "name", "price", "goals", "stock");
 
   if (cat) {
     query = query.where({ cat });
@@ -35,6 +35,7 @@ export async function GET(request: Request) {
       cat: producto.cat,
       name: producto.name,
       price: producto.price,
+      stock: producto.stock,
       goals,
       recomendado: goalUsuario ? goals.includes(goalUsuario) : false,
     };

@@ -7,6 +7,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string("name", 150).notNullable();
     table.integer("price").unsigned().notNullable();
     table.json("goals").notNullable();
+    table.integer("stock").unsigned().notNullable().defaultTo(0);
   });
 }
 

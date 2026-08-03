@@ -28,6 +28,7 @@ export async function GET(request: Request) {
       "users.bank_account",
       "users.bank_holder",
       "users.pay_phone",
+      "users.gym_id",
       "roles.nombre as rol",
     )
     .first();
@@ -50,7 +51,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Cuerpo de la solicitud inválido." }, { status: 400 });
   }
 
-  const { nombre, apellido, correo, telefono, especialidad, bio, bankName, bankAccount, bankHolder, payPhone } =
+  const { nombre, apellido, correo, telefono, especialidad, bio, bankName, bankAccount, bankHolder, payPhone, gymId } =
     body as Record<string, unknown>;
 
   if (
@@ -90,6 +91,7 @@ export async function PUT(request: Request) {
       bank_account: sesion.rol === "Entrenador" && typeof bankAccount === "string" ? bankAccount.trim() : null,
       bank_holder: sesion.rol === "Entrenador" && typeof bankHolder === "string" ? bankHolder.trim() : null,
       pay_phone: sesion.rol === "Entrenador" && typeof payPhone === "string" ? payPhone.trim() : null,
+      gym_id: sesion.rol === "Entrenador" && typeof gymId === "number" ? gymId : null,
     });
 
   return NextResponse.json({ message: "Perfil actualizado correctamente." });

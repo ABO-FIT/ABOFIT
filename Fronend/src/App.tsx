@@ -8,7 +8,7 @@ import MiPlan from "./pages/portal/MiPlan";
 import MisRutinas from "./pages/portal/MisRutinas";
 import MiProgreso from "./pages/portal/MiProgreso";
 import ContactoEntrenador from "./pages/portal/ContactoEntrenador";
-import Panel from "./pages/entrenador/Panel";
+import PanelEntrenador from "./pages/entrenador/Panel";
 import MisClientes from "./pages/entrenador/MisClientes";
 import ClienteDetalle from "./pages/entrenador/ClienteDetalle";
 import Mensajes from "./pages/entrenador/Mensajes";
@@ -16,9 +16,19 @@ import Catalogo from "./pages/shop/Catalogo";
 import Carrito from "./pages/shop/Carrito";
 import MisPedidos from "./pages/shop/MisPedidos";
 import MisFacturas from "./pages/shop/MisFacturas";
+import PanelAdmin from "./pages/admin/Panel";
+import Usuarios from "./pages/admin/Usuarios";
+import Gimnasios from "./pages/admin/Gimnasios";
+import CatalogoAdmin from "./pages/admin/CatalogoAdmin";
+import Planes from "./pages/admin/Planes";
+import Pedidos from "./pages/admin/Pedidos";
+import Facturas from "./pages/admin/Facturas";
+import Reportes from "./pages/admin/Reportes";
+import Auditoria from "./pages/admin/Auditoria";
 import RutaProtegida from "./components/RutaProtegida";
 import PortalClienteLayout from "./components/PortalClienteLayout";
 import PortalEntrenadorLayout from "./components/PortalEntrenadorLayout";
+import PortalAdminLayout from "./components/PortalAdminLayout";
 
 export default function App() {
   return (
@@ -65,7 +75,7 @@ export default function App() {
         }
       >
         <Route index element={<Navigate to="panel" replace />} />
-        <Route path="panel" element={<Panel />} />
+        <Route path="panel" element={<PanelEntrenador />} />
         <Route path="clientes" element={<MisClientes />} />
         <Route path="clientes/:id" element={<ClienteDetalle />} />
         <Route path="mensajes" element={<Mensajes />} />
@@ -73,6 +83,26 @@ export default function App() {
         <Route path="carrito" element={<Carrito />} />
         <Route path="pedidos" element={<MisPedidos />} />
         <Route path="facturas" element={<MisFacturas />} />
+      </Route>
+
+      <Route
+        path="/admin"
+        element={
+          <RutaProtegida rol="Administrador">
+            <PortalAdminLayout />
+          </RutaProtegida>
+        }
+      >
+        <Route index element={<Navigate to="panel" replace />} />
+        <Route path="panel" element={<PanelAdmin />} />
+        <Route path="usuarios" element={<Usuarios />} />
+        <Route path="gimnasios" element={<Gimnasios />} />
+        <Route path="catalogo" element={<CatalogoAdmin />} />
+        <Route path="planes" element={<Planes />} />
+        <Route path="pedidos" element={<Pedidos />} />
+        <Route path="facturas" element={<Facturas />} />
+        <Route path="reportes" element={<Reportes />} />
+        <Route path="auditoria" element={<Auditoria />} />
       </Route>
     </Routes>
   );

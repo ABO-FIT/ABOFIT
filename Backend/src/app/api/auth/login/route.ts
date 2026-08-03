@@ -29,6 +29,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Credenciales inválidas." }, { status: 401 });
   }
 
+  if (!usuario.activo) {
+    return NextResponse.json({ error: "Esta cuenta está desactivada. Contacta a un administrador." }, { status: 403 });
+  }
+
   const passwordValida = await bcrypt.compare(password, usuario.password_hash);
   if (!passwordValida) {
     return NextResponse.json({ error: "Credenciales inválidas." }, { status: 401 });

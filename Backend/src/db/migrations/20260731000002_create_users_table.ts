@@ -31,6 +31,8 @@ export async function up(knex: Knex): Promise<void> {
     table.integer("presion_sistolica").unsigned().nullable();
     table.integer("presion_diastolica").unsigned().nullable();
     table.date("fecha_inicio").nullable();
+    table.boolean("activo").notNullable().defaultTo(true);
+    table.integer("gym_id").unsigned().nullable();
     table.timestamps(true, true);
   });
 }

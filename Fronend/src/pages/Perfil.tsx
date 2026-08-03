@@ -1,5 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { actualizarPerfil, cambiarPassword, obtenerPerfil, type ActualizarPerfilPayload, type Perfil as PerfilType } from "../api/client";
+import {
+  actualizarPerfil,
+  cambiarPassword,
+  obtenerGimnasios,
+  obtenerPerfil,
+  type ActualizarPerfilPayload,
+  type Gimnasio,
+  type Perfil as PerfilType,
+} from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/brand/logo-onlight.png";
 
@@ -7,6 +15,8 @@ export default function Perfil() {
   const { token, usuario, cerrarSesion } = useAuth();
 
   const [form, setForm] = useState<ActualizarPerfilPayload | null>(null);
+  const [gymId, setGymId] = useState<number | "">("");
+  const [gimnasios, setGimnasios] = useState<Gimnasio[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -35,10 +45,15 @@ export default function Perfil() {
           bankHolder: perfil.bank_holder ?? "",
           payPhone: perfil.pay_phone ?? "",
         });
+        setGymId(perfil.gym_id ?? "");
       })
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar el perfil."))
       .finally(() => setCargando(false));
-  }, [token]);
+
+    if (usuario?.rol === "Entrenador") {
+      obtenerGimnasios(token).then(({ gimnasios }) => setGimnasios(gimnasios)).catch(() => {});
+    }
+  }, [token, usuario?.rol]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -49,7 +64,7 @@ export default function Perfil() {
     setGuardando(true);
 
     try {
-      const respuesta = await actualizarPerfil(token, form);
+      const respuesta = await actualizarPerfil(token, { ...form, gymId: gymId === "" ? undefined : gymId });
       setMensaje(respuesta.message);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
@@ -145,6 +160,14 @@ export default function Perfil() {
               value={form.bio}
               onChange={(e) => setForm({ ...form, bio: e.target.value })}
             />
+
+            <label htmlFor="gymId">Gimnasio donde impartes tus entrenamientos</label>
+            <select id="gymId" value={gymId} onChange={(e) => setGymId(e.target.value ? Number(e.target.value) : "")}>
+              <option value="">Sin asignar</option>
+              {gimnasios.map((g) => (
+                <option key={g.id} value={g.id}>{g.name} — {g.city}</option>
+              ))}
+            </select>
 
             <h3>Datos bancarios para recibir pagos</h3>
 

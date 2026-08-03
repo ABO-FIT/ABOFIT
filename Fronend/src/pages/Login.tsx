@@ -25,6 +25,8 @@ export default function Login() {
         navigate("/portal/mi-plan");
       } else if (respuesta.usuario.rol === "Entrenador") {
         navigate("/entrenador/panel");
+      } else if (respuesta.usuario.rol === "Administrador") {
+        navigate("/admin/panel");
       } else {
         navigate("/perfil");
       }
