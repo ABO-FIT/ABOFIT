@@ -18,6 +18,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string("pay_phone", 30).nullable();
     table.string("goal_key", 30).nullable();
     table.string("plan_key", 10).nullable();
+    table.integer("trainer_id").unsigned().nullable().references("id").inTable("users");
     table.decimal("peso", 6, 2).nullable();
     table.enu("peso_unidad", ["kg", "lb"]).notNullable().defaultTo("kg");
     table.decimal("altura", 6, 2).nullable();

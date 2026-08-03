@@ -23,7 +23,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ asignado: false });
   }
 
-  const rutina = await db("default_routines").where({ goal_key: usuario.goal_key }).first();
+  const rutinaCustom = await db("custom_routines").where({ user_id: sesion.userId }).first();
+  const rutinaDefault = rutinaCustom ? null : await db("default_routines").where({ goal_key: usuario.goal_key }).first();
+  const rutina = rutinaCustom ?? rutinaDefault;
   const dias = rutina ? parsearJson<DiaRutina[]>(rutina.contenido) : [];
 
   const semana = claveSemanaActual();

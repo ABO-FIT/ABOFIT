@@ -15,12 +15,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ asignado: false });
   }
 
-  const [plan, goal, rutina, dieta] = await Promise.all([
+  const [plan, goal, rutinaCustom, rutinaDefault, dietaCustom, dietaDefault] = await Promise.all([
     db("plans").where({ key: usuario.plan_key }).first(),
     db("goals").where({ key: usuario.goal_key }).first(),
+    db("custom_routines").where({ user_id: sesion.userId }).first(),
     db("default_routines").where({ goal_key: usuario.goal_key }).first(),
+    db("custom_diets").where({ user_id: sesion.userId }).first(),
     db("default_diets").where({ goal_key: usuario.goal_key }).first(),
   ]);
+
+  const rutina = rutinaCustom ?? rutinaDefault;
+  const dieta = dietaCustom ?? dietaDefault;
 
   return NextResponse.json({
     asignado: true,

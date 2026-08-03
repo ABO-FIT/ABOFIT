@@ -6,6 +6,7 @@ export async function up(knex: Knex): Promise<void> {
     table.integer("client_id").unsigned().notNullable().references("id").inTable("users");
     table.enu("remitente", ["cliente", "entrenador"]).notNullable();
     table.text("texto").notNullable();
+    table.boolean("leido").notNullable().defaultTo(false);
     table.timestamp("created_at").defaultTo(knex.fn.now());
   });
 }

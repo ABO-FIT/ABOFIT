@@ -21,7 +21,13 @@ export default function Login() {
     try {
       const respuesta = await iniciarSesionApi(identificador, password);
       iniciarSesion(respuesta.token, respuesta.usuario);
-      navigate(respuesta.usuario.rol === "Cliente" ? "/portal/mi-plan" : "/perfil");
+      if (respuesta.usuario.rol === "Cliente") {
+        navigate("/portal/mi-plan");
+      } else if (respuesta.usuario.rol === "Entrenador") {
+        navigate("/entrenador/panel");
+      } else {
+        navigate("/perfil");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
     } finally {
