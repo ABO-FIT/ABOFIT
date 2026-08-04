@@ -636,6 +636,60 @@ tr:last-child td {
   color: #fff;
 }
 
+.sidebar-group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  color: #aeb4c0;
+  font-size: 14px;
+  font-weight: 500;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-group-toggle:hover {
+  background: var(--ink2);
+  color: #fff;
+  filter: none;
+}
+
+.sidebar-group-toggle .chev {
+  font-size: 11px;
+}
+
+.sidebar-subnav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 16px;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.sidebar-subnav a {
+  display: flex;
+  align-items: center;
+  padding: 9px 12px;
+  border-radius: 10px;
+  color: #aeb4c0;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.sidebar-subnav a:hover {
+  background: var(--ink2);
+  color: #fff;
+}
+
+.sidebar-subnav a.active {
+  background: var(--accent);
+  color: #fff;
+}
+
 .sidebar-user {
   padding: 14px 16px;
   border-top: 1px solid #232b39;

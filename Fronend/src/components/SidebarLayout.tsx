@@ -1,13 +1,20 @@
+import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import logo from "../assets/brand/logo.png";
 import NotificationBell from "./NotificationBell";
 
-export interface EnlaceNav {
+export interface EnlaceHijo {
   to: string;
   label: string;
+}
+
+export interface EnlaceNav {
+  to?: string;
+  label: string;
   icon: string;
+  hijos?: EnlaceHijo[];
 }
 
 export default function SidebarLayout({ enlaces }: { enlaces: EnlaceNav[] }) {
@@ -15,6 +22,17 @@ export default function SidebarLayout({ enlaces }: { enlaces: EnlaceNav[] }) {
   const { cantidad } = useCart();
   const location = useLocation();
   const base = location.pathname.split("/").slice(0, 2).join("/");
+
+  const grupoActivoPorRuta = enlaces.find((e) => e.hijos?.some((h) => location.pathname.startsWith(h.to)))?.label ?? null;
+  const [grupoAbierto, setGrupoAbierto] = useState<string | null>(grupoActivoPorRuta);
+
+  useEffect(() => {
+    if (grupoActivoPorRuta) setGrupoAbierto(grupoActivoPorRuta);
+  }, [grupoActivoPorRuta]);
+
+  function toggleGrupo(label: string) {
+    setGrupoAbierto((actual) => (actual === label ? null : label));
+  }
 
   return (
     <div className="app-shell">
@@ -25,16 +43,39 @@ export default function SidebarLayout({ enlaces }: { enlaces: EnlaceNav[] }) {
         </div>
 
         <nav className="sidebar-nav">
-          {enlaces.map((enlace) => (
-            <NavLink
-              key={enlace.to}
-              to={enlace.to}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              <span className="ic" aria-hidden="true">{enlace.icon}</span>
-              {enlace.label}
-            </NavLink>
-          ))}
+          {enlaces.map((enlace) =>
+            enlace.hijos ? (
+              <div key={enlace.label}>
+                <button
+                  type="button"
+                  className="sidebar-group-toggle"
+                  onClick={() => toggleGrupo(enlace.label)}
+                >
+                  <span className="ic" aria-hidden="true">{enlace.icon}</span>
+                  <span style={{ flex: 1, textAlign: "left" }}>{enlace.label}</span>
+                  <span className="chev">{grupoAbierto === enlace.label ? "⌃" : "⌄"}</span>
+                </button>
+                {grupoAbierto === enlace.label && (
+                  <div className="sidebar-subnav">
+                    {enlace.hijos.map((hijo) => (
+                      <NavLink key={hijo.to} to={hijo.to} className={({ isActive }) => (isActive ? "active" : "")}>
+                        {hijo.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <NavLink
+                key={enlace.to}
+                to={enlace.to as string}
+                className={({ isActive }) => (isActive ? "active" : "")}
+              >
+                <span className="ic" aria-hidden="true">{enlace.icon}</span>
+                {enlace.label}
+              </NavLink>
+            )
+          )}
         </nav>
 
         <div className="sidebar-user">

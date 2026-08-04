@@ -30,7 +30,9 @@ import Pedidos from "./pages/admin/Pedidos";
 import Facturas from "./pages/admin/Facturas";
 import Reportes from "./pages/admin/Reportes";
 import Auditoria from "./pages/admin/Auditoria";
-import Configuracion from "./pages/admin/Configuracion";
+import ConfigObjetivos from "./pages/admin/configuracion/Objetivos";
+import ConfigCategorias from "./pages/admin/configuracion/Categorias";
+import ConfigPlantillaFactura from "./pages/admin/configuracion/PlantillaFactura";
 import RutaProtegida from "./components/RutaProtegida";
 import PortalClienteLayout from "./components/PortalClienteLayout";
 import PortalEntrenadorLayout from "./components/PortalEntrenadorLayout";
@@ -108,7 +110,12 @@ export default function App() {
         <Route path="facturas" element={<Facturas />} />
         <Route path="reportes" element={<Reportes />} />
         <Route path="auditoria" element={<Auditoria />} />
-        <Route path="configuracion" element={<Configuracion />} />
+        <Route path="configuracion">
+          <Route index element={<Navigate to="objetivos" replace />} />
+          <Route path="objetivos" element={<ConfigObjetivos />} />
+          <Route path="categorias" element={<ConfigCategorias />} />
+          <Route path="plantilla-factura" element={<ConfigPlantillaFactura />} />
+        </Route>
         <Route path="perfil" element={<Perfil />} />
       </Route>
     </Routes>

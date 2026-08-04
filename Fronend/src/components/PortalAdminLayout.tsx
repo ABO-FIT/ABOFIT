@@ -10,7 +10,15 @@ const ENLACES: EnlaceNav[] = [
   { to: "/admin/facturas", label: "Facturas", icon: "▤" },
   { to: "/admin/reportes", label: "Reportes", icon: "▲" },
   { to: "/admin/auditoria", label: "Auditoría", icon: "⚙" },
-  { to: "/admin/configuracion", label: "Configuración", icon: "⚙" },
+  {
+    label: "Configuración",
+    icon: "⚙",
+    hijos: [
+      { to: "/admin/configuracion/objetivos", label: "Objetivos" },
+      { to: "/admin/configuracion/categorias", label: "Categoría de Catálogo" },
+      { to: "/admin/configuracion/plantilla-factura", label: "Plantillas de Facturas" },
+    ],
+  },
   { to: "/admin/perfil", label: "Perfil", icon: "☺" },
 ];
 
