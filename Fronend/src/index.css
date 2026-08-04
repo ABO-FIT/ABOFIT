@@ -209,6 +209,10 @@ a {
   padding: 20px;
 }
 
+.muted {
+  color: var(--muted);
+}
+
 .tag {
   display: inline-block;
   font-family: var(--disp);

@@ -77,6 +77,7 @@ export interface Perfil {
   bank_holder: string | null;
   pay_phone: string | null;
   gym_id: number | null;
+  fecha_inicio: string | null;
   rol: string;
 }
 

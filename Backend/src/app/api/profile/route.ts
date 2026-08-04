@@ -29,6 +29,7 @@ export async function GET(request: Request) {
       "users.bank_holder",
       "users.pay_phone",
       "users.gym_id",
+      "users.fecha_inicio",
       "roles.nombre as rol",
     )
     .first();
