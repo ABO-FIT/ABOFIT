@@ -5,9 +5,11 @@ import {
   cambiarPlanCliente,
   guardarEvaluacion,
   obtenerDetalleCliente,
+  obtenerHistorialEvaluaciones,
   obtenerObjetivos,
   obtenerPlanes,
   type DetalleClienteRespuesta,
+  type EvaluacionHistorial,
   type EvaluacionPayload,
   type GoalAdmin,
   type PlanAdmin,
@@ -42,6 +44,14 @@ export default function ClienteDetalle() {
   const [evaluacion, setEvaluacion] = useState<EvaluacionPayload>({});
   const [mensajeEval, setMensajeEval] = useState<string | null>(null);
   const [guardandoEval, setGuardandoEval] = useState(false);
+  const [historialEval, setHistorialEval] = useState<EvaluacionHistorial[]>([]);
+
+  function cargarHistorialEvaluaciones() {
+    if (!token) return;
+    obtenerHistorialEvaluaciones(token, clientId).then(({ historial }) => setHistorialEval(historial)).catch(() => {});
+  }
+
+  useEffect(cargarHistorialEvaluaciones, [token, clientId]);
 
   function cargar() {
     if (!token) return;
@@ -79,6 +89,7 @@ export default function ClienteDetalle() {
       const respuesta = await guardarEvaluacion(token, clientId, evaluacion);
       setMensajeEval(respuesta.message);
       cargar();
+      cargarHistorialEvaluaciones();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
     } finally {
@@ -257,6 +268,23 @@ export default function ClienteDetalle() {
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>Proteína objetivo</p>
               <p style={{ margin: 0, fontWeight: 700 }}>{salud.proteinaObjetivoG ? `${salud.proteinaObjetivoG} g` : "—"}</p>
             </div>
+          </div>
+
+          <h3 style={{ marginTop: 24 }}>Historial de evaluaciones</h3>
+          <div style={{ display: "grid", gap: 8 }}>
+            {historialEval.map((registro) => (
+              <div key={registro.id} className="card">
+                <strong>{new Date(registro.created_at).toLocaleDateString("es-DO")}</strong>
+                <p style={{ margin: 0 }}>
+                  {registro.peso ? `${registro.peso} ${registro.peso_unidad}` : ""}
+                  {registro.cintura ? ` · Cintura ${registro.cintura} cm` : ""}
+                  {registro.presion_sistolica && registro.presion_diastolica
+                    ? ` · Presión ${registro.presion_sistolica}/${registro.presion_diastolica}`
+                    : ""}
+                </p>
+              </div>
+            ))}
+            {historialEval.length === 0 && <p style={{ color: "var(--muted)" }}>Sin evaluaciones registradas todavía.</p>}
           </div>
         </div>
       )}

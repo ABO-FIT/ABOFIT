@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
+import { obtenerPorcentajeSemana } from "@/lib/rutinaEstado";
 
 const PLANES_VALIDOS = ["A", "B"];
 const OBJETIVOS_VALIDOS = ["masa", "grasa", "mantenimiento", "rendimiento"];
@@ -11,9 +12,24 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
-  const clientes = await db("users")
+  const clientesBase = await db("users")
     .where({ trainer_id: sesion.userId })
     .select("id", "nombre", "apellido", "usuario", "correo", "plan_key", "goal_key");
+
+  const clientes = await Promise.all(
+    clientesBase.map(async (cliente) => {
+      const [ultimoProgreso, porcentajeSemana] = await Promise.all([
+        db("progress_entries").where({ user_id: cliente.id }).orderBy("fecha", "desc").first("fecha"),
+        obtenerPorcentajeSemana(cliente.id, cliente.goal_key),
+      ]);
+
+      return {
+        ...cliente,
+        ultimaFechaProgreso: ultimoProgreso?.fecha ?? null,
+        porcentajeSemana,
+      };
+    })
+  );
 
   return NextResponse.json({ clientes });
 }

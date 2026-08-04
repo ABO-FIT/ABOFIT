@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { guardarDietaCliente, obtenerDietaCliente, type Comida } from "../../api/client";
+import {
+  eliminarPlantillaDieta,
+  guardarDietaCliente,
+  guardarPlantillaDieta,
+  obtenerDietaCliente,
+  obtenerPlantillasDieta,
+  type Comida,
+  type PlantillaDieta,
+} from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 
 export default function DietaBuilder({ clientId }: { clientId: number }) {
@@ -10,6 +18,13 @@ export default function DietaBuilder({ clientId }: { clientId: number }) {
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
+  const [plantillas, setPlantillas] = useState<PlantillaDieta[]>([]);
+  const [plantillaSeleccionada, setPlantillaSeleccionada] = useState("");
+
+  function cargarPlantillas() {
+    if (!token) return;
+    obtenerPlantillasDieta(token).then(({ plantillas }) => setPlantillas(plantillas)).catch(() => {});
+  }
 
   useEffect(() => {
     if (!token) return;
@@ -20,7 +35,35 @@ export default function DietaBuilder({ clientId }: { clientId: number }) {
         setPersonalizada(respuesta.personalizada);
       })
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar la dieta."));
+    cargarPlantillas();
   }, [token, clientId]);
+
+  function cargarDesdePlantilla(id: string) {
+    setPlantillaSeleccionada(id);
+    const plantilla = plantillas.find((p) => String(p.id) === id);
+    if (plantilla) {
+      setNota(plantilla.nota);
+      setComidas(plantilla.comidas);
+    }
+  }
+
+  async function handleGuardarPlantilla() {
+    if (!token || comidas.length === 0) return;
+    const nombre = window.prompt("Nombre de la plantilla:");
+    if (!nombre || !nombre.trim()) return;
+    try {
+      await guardarPlantillaDieta(token, nombre.trim(), nota, comidas);
+      cargarPlantillas();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo guardar la plantilla.");
+    }
+  }
+
+  async function handleEliminarPlantilla(id: number) {
+    if (!token) return;
+    await eliminarPlantillaDieta(token, id);
+    cargarPlantillas();
+  }
 
   function actualizarComida(index: number, cambios: Partial<Comida>) {
     setComidas(comidas.map((c, i) => (i === index ? { ...c, ...cambios } : c)));
@@ -54,6 +97,23 @@ export default function DietaBuilder({ clientId }: { clientId: number }) {
   return (
     <div className="card">
       <h2>Nutrición {personalizada ? "personalizada" : "por defecto (según objetivo)"}</h2>
+
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, flexWrap: "wrap" }}>
+        <select value={plantillaSeleccionada} onChange={(e) => cargarDesdePlantilla(e.target.value)}>
+          <option value="">Cargar desde plantilla...</option>
+          {plantillas.map((p) => (
+            <option key={p.id} value={p.id}>{p.nombre}</option>
+          ))}
+        </select>
+        <button type="button" className="secondary" onClick={handleGuardarPlantilla} disabled={comidas.length === 0}>
+          Guardar como plantilla
+        </button>
+        {plantillaSeleccionada && (
+          <button type="button" className="secondary" onClick={() => handleEliminarPlantilla(Number(plantillaSeleccionada))}>
+            Eliminar plantilla
+          </button>
+        )}
+      </div>
 
       <label htmlFor="nota">Nota general</label>
       <textarea id="nota" rows={2} value={nota} onChange={(e) => setNota(e.target.value)} />

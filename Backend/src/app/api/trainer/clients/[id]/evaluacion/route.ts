@@ -43,21 +43,47 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: "Nivel de actividad inválido." }, { status: 400 });
   }
 
-  await db("users")
-    .where({ id: clientId })
-    .update({
-      peso: peso ?? null,
-      peso_unidad: pesoUnidad ?? "kg",
-      altura: altura ?? null,
-      altura_unidad: alturaUnidad ?? "cm",
-      edad: edad ?? null,
-      sexo: sexo ?? null,
-      nivel_actividad: nivelActividad ?? null,
-      cintura: cintura ?? null,
-      cadera: cadera ?? null,
-      presion_sistolica: presionSistolica ?? null,
-      presion_diastolica: presionDiastolica ?? null,
-    });
+  const valores = {
+    peso: (peso as number | undefined) ?? null,
+    peso_unidad: (pesoUnidad as string | undefined) ?? "kg",
+    altura: (altura as number | undefined) ?? null,
+    altura_unidad: (alturaUnidad as string | undefined) ?? "cm",
+    edad: (edad as number | undefined) ?? null,
+    sexo: (sexo as string | undefined) ?? null,
+    nivel_actividad: (nivelActividad as string | undefined) ?? null,
+    cintura: (cintura as number | undefined) ?? null,
+    cadera: (cadera as number | undefined) ?? null,
+    presion_sistolica: (presionSistolica as number | undefined) ?? null,
+    presion_diastolica: (presionDiastolica as number | undefined) ?? null,
+  };
+
+  await db("users").where({ id: clientId }).update(valores);
+
+  await db("client_evaluations").insert({
+    client_id: clientId,
+    trainer_id: sesion.userId,
+    ...valores,
+  });
 
   return NextResponse.json({ message: "Evaluación guardada correctamente." });
+}
+
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const sesion = obtenerSesion(request);
+  if (!sesion || sesion.rol !== "Entrenador") {
+    return NextResponse.json({ error: "No autorizado." }, { status: 403 });
+  }
+
+  const clientId = Number(params.id);
+  const cliente = await obtenerClienteDelEntrenador(sesion.userId, clientId);
+  if (!cliente) {
+    return NextResponse.json({ error: "Cliente no encontrado." }, { status: 404 });
+  }
+
+  const historial = await db("client_evaluations")
+    .where({ client_id: clientId })
+    .orderBy("created_at", "desc")
+    .select("id", "peso", "peso_unidad", "altura", "altura_unidad", "edad", "sexo", "nivel_actividad", "cintura", "cadera", "presion_sistolica", "presion_diastolica", "created_at");
+
+  return NextResponse.json({ historial });
 }

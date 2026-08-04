@@ -14,6 +14,8 @@ import PanelEntrenador from "./pages/entrenador/Panel";
 import MisClientes from "./pages/entrenador/MisClientes";
 import ClienteDetalle from "./pages/entrenador/ClienteDetalle";
 import Mensajes from "./pages/entrenador/Mensajes";
+import Alertas from "./pages/entrenador/Alertas";
+import ReportesEntrenador from "./pages/entrenador/Reportes";
 import Catalogo from "./pages/shop/Catalogo";
 import Carrito from "./pages/shop/Carrito";
 import MisPedidos from "./pages/shop/MisPedidos";
@@ -83,6 +85,8 @@ export default function App() {
       >
         <Route index element={<Navigate to="panel" replace />} />
         <Route path="panel" element={<PanelEntrenador />} />
+        <Route path="alertas" element={<Alertas />} />
+        <Route path="reportes" element={<ReportesEntrenador />} />
         <Route path="clientes" element={<MisClientes />} />
         <Route path="clientes/:id" element={<ClienteDetalle />} />
         <Route path="mensajes" element={<Mensajes />} />

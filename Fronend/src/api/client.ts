@@ -265,6 +265,8 @@ export interface ClienteResumen {
   correo: string;
   plan_key: string | null;
   goal_key: string | null;
+  ultimaFechaProgreso: string | null;
+  porcentajeSemana: number;
 }
 
 export function obtenerMisClientes(token: string) {
@@ -364,6 +366,26 @@ export function guardarEvaluacion(token: string, clientId: number, payload: Eval
   return request<{ message: string }>(`/api/trainer/clients/${clientId}/evaluacion`, "PUT", payload, token);
 }
 
+export interface EvaluacionHistorial {
+  id: number;
+  peso: string | null;
+  peso_unidad: "kg" | "lb";
+  altura: string | null;
+  altura_unidad: "cm" | "ft";
+  edad: number | null;
+  sexo: "male" | "female" | null;
+  nivel_actividad: string | null;
+  cintura: string | null;
+  cadera: string | null;
+  presion_sistolica: number | null;
+  presion_diastolica: number | null;
+  created_at: string;
+}
+
+export function obtenerHistorialEvaluaciones(token: string, clientId: number) {
+  return request<{ historial: EvaluacionHistorial[] }>(`/api/trainer/clients/${clientId}/evaluacion`, "GET", undefined, token);
+}
+
 export function cambiarObjetivoCliente(token: string, clientId: number, goalKey: string) {
   return request<{ message: string }>(`/api/trainer/clients/${clientId}/objetivo`, "PUT", { goalKey }, token);
 }
@@ -417,6 +439,84 @@ export interface PanelEntrenador {
 
 export function obtenerPanelEntrenador(token: string) {
   return request<PanelEntrenador>("/api/trainer/panel", "GET", undefined, token);
+}
+
+export interface AlertaCliente {
+  clienteId: number;
+  nombre: string;
+  usuario: string;
+  motivos: string[];
+  diasSinProgreso: number | null;
+  porcentajeSemana: number;
+  diasPagoPendiente: number | null;
+}
+
+export function obtenerAlertas(token: string) {
+  return request<{ alertas: AlertaCliente[] }>("/api/trainer/alertas", "GET", undefined, token);
+}
+
+export interface DistribucionObjetivo {
+  goalKey: string;
+  goalLabel: string;
+  total: number;
+}
+
+export interface EvolucionCliente {
+  clienteId: number;
+  nombre: string;
+  pesoInicial: number;
+  pesoActual: number;
+  cambioPeso: number;
+  registros: number;
+}
+
+export interface ReportesEntrenador {
+  totalClientes: number;
+  clientesActivos: number;
+  distribucion: DistribucionObjetivo[];
+  cambioPromedioPeso: number | null;
+  topEvolucion: EvolucionCliente[];
+}
+
+export function obtenerReportesEntrenador(token: string) {
+  return request<ReportesEntrenador>("/api/trainer/reportes", "GET", undefined, token);
+}
+
+export interface PlantillaRutina {
+  id: number;
+  nombre: string;
+  dias: DiaRutina[];
+}
+
+export function obtenerPlantillasRutina(token: string) {
+  return request<{ plantillas: PlantillaRutina[] }>("/api/trainer/plantillas/rutinas", "GET", undefined, token);
+}
+
+export function guardarPlantillaRutina(token: string, nombre: string, dias: DiaRutina[]) {
+  return request<{ id: number; message: string }>("/api/trainer/plantillas/rutinas", "POST", { nombre, dias }, token);
+}
+
+export function eliminarPlantillaRutina(token: string, id: number) {
+  return request<{ message: string }>(`/api/trainer/plantillas/rutinas/${id}`, "DELETE", undefined, token);
+}
+
+export interface PlantillaDieta {
+  id: number;
+  nombre: string;
+  nota: string;
+  comidas: Comida[];
+}
+
+export function obtenerPlantillasDieta(token: string) {
+  return request<{ plantillas: PlantillaDieta[] }>("/api/trainer/plantillas/dietas", "GET", undefined, token);
+}
+
+export function guardarPlantillaDieta(token: string, nombre: string, nota: string, comidas: Comida[]) {
+  return request<{ id: number; message: string }>("/api/trainer/plantillas/dietas", "POST", { nombre, nota, comidas }, token);
+}
+
+export function eliminarPlantillaDieta(token: string, id: number) {
+  return request<{ message: string }>(`/api/trainer/plantillas/dietas/${id}`, "DELETE", undefined, token);
 }
 
 export interface Producto {

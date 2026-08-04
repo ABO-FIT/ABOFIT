@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { guardarRutinaCliente, obtenerRutinaCliente, type DiaRutina } from "../../api/client";
+import {
+  eliminarPlantillaRutina,
+  guardarPlantillaRutina,
+  guardarRutinaCliente,
+  obtenerPlantillasRutina,
+  obtenerRutinaCliente,
+  type DiaRutina,
+  type PlantillaRutina,
+} from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 
 function nuevoDia(): DiaRutina {
@@ -13,6 +21,13 @@ export default function RutinaBuilder({ clientId }: { clientId: number }) {
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
+  const [plantillas, setPlantillas] = useState<PlantillaRutina[]>([]);
+  const [plantillaSeleccionada, setPlantillaSeleccionada] = useState("");
+
+  function cargarPlantillas() {
+    if (!token) return;
+    obtenerPlantillasRutina(token).then(({ plantillas }) => setPlantillas(plantillas)).catch(() => {});
+  }
 
   useEffect(() => {
     if (!token) return;
@@ -22,7 +37,34 @@ export default function RutinaBuilder({ clientId }: { clientId: number }) {
         setPersonalizada(respuesta.personalizada);
       })
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar la rutina."));
+    cargarPlantillas();
   }, [token, clientId]);
+
+  function cargarDesdePlantilla(id: string) {
+    setPlantillaSeleccionada(id);
+    const plantilla = plantillas.find((p) => String(p.id) === id);
+    if (plantilla) {
+      setDias(plantilla.dias);
+    }
+  }
+
+  async function handleGuardarPlantilla() {
+    if (!token || dias.length === 0) return;
+    const nombre = window.prompt("Nombre de la plantilla:");
+    if (!nombre || !nombre.trim()) return;
+    try {
+      await guardarPlantillaRutina(token, nombre.trim(), dias);
+      cargarPlantillas();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo guardar la plantilla.");
+    }
+  }
+
+  async function handleEliminarPlantilla(id: number) {
+    if (!token) return;
+    await eliminarPlantillaRutina(token, id);
+    cargarPlantillas();
+  }
 
   function actualizarDia(index: number, cambios: Partial<DiaRutina>) {
     setDias(dias.map((dia, i) => (i === index ? { ...dia, ...cambios } : dia)));
@@ -72,6 +114,23 @@ export default function RutinaBuilder({ clientId }: { clientId: number }) {
   return (
     <div className="card">
       <h2>Rutina {personalizada ? "personalizada" : "por defecto (según objetivo)"}</h2>
+
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12, flexWrap: "wrap" }}>
+        <select value={plantillaSeleccionada} onChange={(e) => cargarDesdePlantilla(e.target.value)}>
+          <option value="">Cargar desde plantilla...</option>
+          {plantillas.map((p) => (
+            <option key={p.id} value={p.id}>{p.nombre}</option>
+          ))}
+        </select>
+        <button type="button" className="secondary" onClick={handleGuardarPlantilla} disabled={dias.length === 0}>
+          Guardar como plantilla
+        </button>
+        {plantillaSeleccionada && (
+          <button type="button" className="secondary" onClick={() => handleEliminarPlantilla(Number(plantillaSeleccionada))}>
+            Eliminar plantilla
+          </button>
+        )}
+      </div>
 
       <div style={{ display: "grid", gap: 12 }}>
         {dias.map((dia, diaIndex) => (

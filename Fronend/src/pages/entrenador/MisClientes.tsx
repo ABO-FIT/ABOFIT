@@ -31,6 +31,8 @@ export default function MisClientes() {
   const [objetivos, setObjetivos] = useState<GoalAdmin[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  const [filtroGoal, setFiltroGoal] = useState("");
+
   const [mostrarBuscar, setMostrarBuscar] = useState(false);
   const [usuarioBuscado, setUsuarioBuscado] = useState("");
   const [encontrado, setEncontrado] = useState<ClienteBuscado | null>(null);
@@ -217,19 +219,36 @@ export default function MisClientes() {
 
       {error && <p role="alert">{error}</p>}
 
+      {objetivos.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <label htmlFor="filtroGoal">Filtrar por objetivo</label>
+          <select id="filtroGoal" value={filtroGoal} onChange={(e) => setFiltroGoal(e.target.value)}>
+            <option value="">Todos</option>
+            {objetivos.map((o) => (
+              <option key={o.key} value={o.key}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div style={{ display: "grid", gap: 12 }}>
-        {clientes.map((cliente) => (
-          <Link key={cliente.id} to={`/entrenador/clientes/${cliente.id}`} className="card" style={{ textDecoration: "none", color: "inherit", display: "flex", justifyContent: "space-between" }}>
-            <div>
-              <strong>{cliente.nombre} {cliente.apellido}</strong>
-              <p style={{ margin: 0, color: "var(--muted)" }}>@{cliente.usuario} · {cliente.correo}</p>
-            </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              {cliente.plan_key && <span className="tag" style={{ background: "var(--oks)", color: "var(--ok)" }}>Plan {cliente.plan_key}</span>}
-              {cliente.goal_key && <span className="tag" style={{ background: "var(--line)" }}>{cliente.goal_key}</span>}
-            </div>
-          </Link>
-        ))}
+        {clientes
+          .filter((cliente) => !filtroGoal || cliente.goal_key === filtroGoal)
+          .map((cliente) => (
+            <Link key={cliente.id} to={`/entrenador/clientes/${cliente.id}`} className="card" style={{ textDecoration: "none", color: "inherit", display: "flex", justifyContent: "space-between" }}>
+              <div>
+                <strong>{cliente.nombre} {cliente.apellido}</strong>
+                <p style={{ margin: 0, color: "var(--muted)" }}>@{cliente.usuario} · {cliente.correo}</p>
+                <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>
+                  Rutina esta semana: {cliente.porcentajeSemana}% · Último progreso: {cliente.ultimaFechaProgreso ?? "sin registros"}
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {cliente.plan_key && <span className="tag" style={{ background: "var(--oks)", color: "var(--ok)" }}>Plan {cliente.plan_key}</span>}
+                {cliente.goal_key && <span className="tag" style={{ background: "var(--line)" }}>{cliente.goal_key}</span>}
+              </div>
+            </Link>
+          ))}
         {clientes.length === 0 && <p style={{ color: "var(--muted)" }}>Aún no tienes clientes asignados.</p>}
       </div>
     </main>
