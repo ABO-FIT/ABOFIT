@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { money } from "../../lib/money";
 import { agregarAlCarrito, obtenerCatalogo, obtenerMiPlan, type MiPlanRespuesta, type Producto } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 import ProductModal from "../../components/ProductModal";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
@@ -37,6 +38,7 @@ function SeccionDesplegable({ titulo, children }: { titulo: string; children: Re
 
 export default function MiPlan() {
   const { token } = useAuth();
+  const { refrescarCarrito } = useCart();
   const [datos, setDatos] = useState<MiPlanRespuesta | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [recomendados, setRecomendados] = useState<Producto[]>([]);
@@ -92,6 +94,7 @@ export default function MiPlan() {
       await agregarAlCarrito(token, productId);
       setMensaje("Producto agregado al carrito.");
       setProductoAbierto(null);
+      refrescarCarrito();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
     }

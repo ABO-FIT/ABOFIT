@@ -1,18 +1,25 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { actualizarCantidadCarrito, crearPedido, obtenerCarrito, quitarDelCarrito, type CartItem } from "../../api/client";
+import { actualizarCantidadCarrito, agregarAlCarrito, crearPedido, obtenerCarrito, quitarDelCarrito, type CartItem } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 import { money } from "../../lib/money";
+import ProductModal from "../../components/ProductModal";
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 export default function Carrito() {
   const { token } = useAuth();
+  const { refrescarCarrito } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
   const base = location.pathname.startsWith("/entrenador") ? "/entrenador" : "/portal";
   const [items, setItems] = useState<CartItem[]>([]);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [mensaje, setMensaje] = useState<string | null>(null);
   const [procesando, setProcesando] = useState(false);
+  const [productoAbierto, setProductoAbierto] = useState<number | null>(null);
 
   function cargar() {
     if (!token) return;
@@ -30,12 +37,28 @@ export default function Carrito() {
     if (!token || qty < 1) return;
     await actualizarCantidadCarrito(token, productId, qty);
     cargar();
+    refrescarCarrito();
   }
 
   async function handleQuitar(productId: number) {
     if (!token) return;
     await quitarDelCarrito(token, productId);
     cargar();
+    refrescarCarrito();
+  }
+
+  async function handleAgregarDesdeModal(productId: number) {
+    if (!token) return;
+    setMensaje(null);
+    try {
+      await agregarAlCarrito(token, productId);
+      setMensaje("Producto agregado al carrito.");
+      setProductoAbierto(null);
+      cargar();
+      refrescarCarrito();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    }
   }
 
   async function handleCheckout() {
@@ -44,6 +67,7 @@ export default function Carrito() {
     setProcesando(true);
     try {
       await crearPedido(token);
+      refrescarCarrito();
       navigate(`${base}/pedidos`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
@@ -57,17 +81,32 @@ export default function Carrito() {
       <h1>Carrito</h1>
 
       {error && <p role="alert">{error}</p>}
+      {mensaje && <p role="status">{mensaje}</p>}
 
       {items.length === 0 && <p style={{ color: "var(--muted)" }}>Tu carrito está vacío.</p>}
 
-      <div style={{ display: "grid", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
         {items.map((item) => (
-          <div key={item.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <strong>{item.name}</strong>
-              <p style={{ margin: 0, color: "var(--muted)" }}>{item.cat} · {money(item.price)} c/u</p>
+          <div key={item.id} className="product-card">
+            <div onClick={() => setProductoAbierto(item.id)} style={{ cursor: "pointer" }}>
+              <div
+                className="product-image"
+                style={item.images[0] ? { backgroundImage: `url(${API_URL}${item.images[0]})` } : undefined}
+              >
+                {!item.images[0] && item.cat}
+              </div>
+              <div className="product-body">
+                <h3 style={{ margin: "4px 0", fontSize: 16 }}>{item.name}</h3>
+                <p style={{ color: "var(--accent2)", fontWeight: 700, fontSize: 18, margin: 0 }}>{money(item.price)} c/u</p>
+                <div className="product-tags">
+                  {item.goals.map((g) => (
+                    <span key={g} className="tag">{g}</span>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+
+            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "0 14px 14px" }} onClick={(e) => e.stopPropagation()}>
               <input
                 type="number"
                 min={1}
@@ -88,6 +127,10 @@ export default function Carrito() {
             {procesando ? "Procesando..." : "Confirmar pedido"}
           </button>
         </div>
+      )}
+
+      {productoAbierto && (
+        <ProductModal productId={productoAbierto} onClose={() => setProductoAbierto(null)} onAgregar={handleAgregarDesdeModal} />
       )}
     </main>
   );

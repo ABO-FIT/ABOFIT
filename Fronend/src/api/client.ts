@@ -600,6 +600,9 @@ export interface CartItem {
   name: string;
   cat: string;
   price: number;
+  stock: number;
+  goals: string[];
+  images: string[];
   qty: number;
 }
 

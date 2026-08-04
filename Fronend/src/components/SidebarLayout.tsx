@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import logo from "../assets/brand/logo.png";
 import NotificationBell from "./NotificationBell";
 
@@ -11,6 +12,7 @@ export interface EnlaceNav {
 
 export default function SidebarLayout({ enlaces }: { enlaces: EnlaceNav[] }) {
   const { cerrarSesion, usuario } = useAuth();
+  const { cantidad } = useCart();
   const location = useLocation();
   const base = location.pathname.split("/").slice(0, 2).join("/");
 
@@ -48,8 +50,28 @@ export default function SidebarLayout({ enlaces }: { enlaces: EnlaceNav[] }) {
         <div className="topbar">
           <NotificationBell />
           {(base === "/portal" || base === "/entrenador") && (
-            <Link to={`${base}/carrito`} className="top-icon" aria-label="Carrito">
+            <Link to={`${base}/carrito`} className="top-icon" aria-label="Carrito" style={{ position: "relative" }}>
               <CartSVG />
+              {cantidad > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -4,
+                    right: -6,
+                    background: "var(--accent2)",
+                    color: "#fff",
+                    borderRadius: 999,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    padding: "3px 6px",
+                    minWidth: 16,
+                    textAlign: "center",
+                  }}
+                >
+                  {cantidad}
+                </span>
+              )}
             </Link>
           )}
         </div>

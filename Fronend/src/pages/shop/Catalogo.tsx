@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { agregarAlCarrito, obtenerCatalogo, obtenerObjetivos, type GoalAdmin, type Producto } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 import { money } from "../../lib/money";
 import ProductModal from "../../components/ProductModal";
 
@@ -8,6 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 export default function Catalogo() {
   const { token } = useAuth();
+  const { refrescarCarrito } = useCart();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [objetivos, setObjetivos] = useState<GoalAdmin[]>([]);
@@ -44,6 +46,7 @@ export default function Catalogo() {
       await agregarAlCarrito(token, productId);
       setMensaje("Producto agregado al carrito.");
       setProductoAbierto(null);
+      refrescarCarrito();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
     }

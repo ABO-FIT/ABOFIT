@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
+import { parsearJson } from "@/lib/json";
 
 const ROLES_COMPRA = ["Cliente", "Entrenador"];
 
@@ -10,10 +11,23 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
-  const items = await db("cart_items")
+  const filas = await db("cart_items")
     .join("products", "products.id", "cart_items.product_id")
     .where("cart_items.user_id", sesion.userId)
-    .select("products.id", "products.name", "products.cat", "products.price", "cart_items.qty");
+    .select("products.id", "products.name", "products.cat", "products.price", "products.stock", "products.goals", "cart_items.qty");
+
+  const imagenes = await db("product_images").orderBy("position", "asc");
+
+  const items = filas.map((fila) => ({
+    id: fila.id,
+    name: fila.name,
+    cat: fila.cat,
+    price: fila.price,
+    stock: fila.stock,
+    goals: parsearJson<string[]>(fila.goals),
+    images: imagenes.filter((img) => img.product_id === fila.id).map((img) => img.path),
+    qty: fila.qty,
+  }));
 
   const total = items.reduce((suma, item) => suma + item.price * item.qty, 0);
 
