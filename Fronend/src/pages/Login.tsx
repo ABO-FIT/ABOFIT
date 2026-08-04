@@ -39,7 +39,7 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <h1>Iniciar sesión</h1>
+      <h1 className="sr-only">Iniciar sesión</h1>
       <form onSubmit={handleSubmit}>
         <div className="field">
           <label htmlFor="identificador">Usuario o correo</label>

@@ -7,6 +7,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="auth-card">
         <div className="brand">
           <img src={logo} alt="ABOFIT" />
+          <span className="brand-sub">Portal de entrenamiento</span>
         </div>
         {children}
       </div>
