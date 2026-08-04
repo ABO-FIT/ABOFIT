@@ -622,12 +622,22 @@ export function quitarDelCarrito(token: string, productId: number) {
   return request<{ message: string }>(`/api/cart/${productId}`, "DELETE", undefined, token);
 }
 
+export interface PedidoItem {
+  productId: number | null;
+  name: string;
+  price: number;
+  qty: number;
+  cat: string | null;
+  goals: string[];
+  images: string[];
+}
+
 export interface Pedido {
   id: number;
   total: number;
   estado: "pendiente" | "recibido" | "entregado" | "cancelado";
   fecha: string;
-  items: { name: string; price: number; qty: number }[];
+  items: PedidoItem[];
 }
 
 export function obtenerPedidos(token: string) {

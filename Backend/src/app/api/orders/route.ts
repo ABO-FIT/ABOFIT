@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
+import { parsearJson } from "@/lib/json";
 
 const ROLES_COMPRA = ["Cliente", "Entrenador"];
 
@@ -14,7 +15,33 @@ export async function GET(request: Request) {
 
   const resultado = await Promise.all(
     pedidos.map(async (pedido) => {
-      const items = await db("order_items").where({ order_id: pedido.id }).select("name", "price", "qty");
+      const filas = await db("order_items")
+        .leftJoin("products", "products.id", "order_items.product_id")
+        .where("order_items.order_id", pedido.id)
+        .select(
+          "order_items.product_id",
+          "order_items.name",
+          "order_items.price",
+          "order_items.qty",
+          "products.cat",
+          "products.goals"
+        );
+
+      const productIds = filas.map((f) => f.product_id).filter((id): id is number => id !== null);
+      const imagenes = productIds.length > 0
+        ? await db("product_images").whereIn("product_id", productIds).orderBy("position", "asc")
+        : [];
+
+      const items = filas.map((f) => ({
+        productId: f.product_id as number | null,
+        name: f.name,
+        price: f.price,
+        qty: f.qty,
+        cat: f.cat ?? null,
+        goals: f.goals ? parsearJson<string[]>(f.goals) : [],
+        images: imagenes.filter((img) => img.product_id === f.product_id).map((img) => img.path),
+      }));
+
       return {
         id: pedido.id,
         total: pedido.total,
