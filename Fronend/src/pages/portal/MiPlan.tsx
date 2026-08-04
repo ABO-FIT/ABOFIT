@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { money } from "../../lib/money";
-import { obtenerMiPlan, type MiPlanRespuesta } from "../../api/client";
+import { obtenerCatalogo, obtenerMiPlan, type MiPlanRespuesta, type Producto } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 
 export default function MiPlan() {
   const { token } = useAuth();
   const [datos, setDatos] = useState<MiPlanRespuesta | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [recomendados, setRecomendados] = useState<Producto[]>([]);
 
   useEffect(() => {
     if (!token) return;
@@ -14,6 +16,13 @@ export default function MiPlan() {
       .then(setDatos)
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar tu plan."));
   }, [token]);
+
+  useEffect(() => {
+    if (!datos || !datos.asignado || !datos.goal) return;
+    obtenerCatalogo(token, { goal: datos.goal.key })
+      .then(({ productos }) => setRecomendados(productos.filter((p) => p.stock > 0).slice(0, 3)))
+      .catch(() => {});
+  }, [datos, token]);
 
   if (error) {
     return (
@@ -66,6 +75,25 @@ export default function MiPlan() {
             <span style={{ fontSize: 14, color: "#8b92a0", fontWeight: 500 }}> / mes</span>
           </div>
         </div>
+      )}
+
+      {recomendados.length > 0 && (
+        <>
+          <h2 style={{ marginTop: 24 }}>Recomendado para tu objetivo</h2>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+            {recomendados.map((producto) => (
+              <Link
+                key={producto.id}
+                to="/portal/catalogo"
+                className="card"
+                style={{ flex: "1 1 200px", minWidth: 200, textDecoration: "none", color: "inherit" }}
+              >
+                <strong>{producto.name}</strong>
+                <p style={{ margin: "6px 0 0", color: "var(--accent2)", fontWeight: 700 }}>{money(producto.price)}</p>
+              </Link>
+            ))}
+          </div>
+        </>
       )}
 
       <h2 style={{ marginTop: 24 }}>Rutina semanal</h2>

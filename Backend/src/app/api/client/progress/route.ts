@@ -11,6 +11,37 @@ const EXTENSIONES_PERMITIDAS: Record<string, string> = {
   "image/webp": ".webp",
 };
 
+interface EntradaProgreso {
+  fecha: string;
+  peso: string | number | null;
+  cintura: string | number | null;
+}
+
+function calcularResumen(entradas: EntradaProgreso[]) {
+  if (entradas.length === 0) {
+    return { totalRegistros: 0, pesoInicial: null, pesoActual: null, cambioPeso: null, cambioCintura: null, diasSinRegistrar: null };
+  }
+
+  const masReciente = entradas[0];
+  const masAntigua = entradas[entradas.length - 1];
+
+  const pesoActual = masReciente.peso !== null ? Number(masReciente.peso) : null;
+  const pesoInicial = masAntigua.peso !== null ? Number(masAntigua.peso) : null;
+  const cinturaActual = masReciente.cintura !== null ? Number(masReciente.cintura) : null;
+  const cinturaInicial = masAntigua.cintura !== null ? Number(masAntigua.cintura) : null;
+
+  const diasSinRegistrar = Math.floor((Date.now() - new Date(masReciente.fecha).getTime()) / 86400000);
+
+  return {
+    totalRegistros: entradas.length,
+    pesoInicial,
+    pesoActual,
+    cambioPeso: pesoActual !== null && pesoInicial !== null ? Number((pesoActual - pesoInicial).toFixed(2)) : null,
+    cambioCintura: cinturaActual !== null && cinturaInicial !== null ? Number((cinturaActual - cinturaInicial).toFixed(2)) : null,
+    diasSinRegistrar,
+  };
+}
+
 export async function GET(request: Request) {
   const sesion = obtenerSesion(request);
   if (!sesion || sesion.rol !== "Cliente") {
@@ -22,7 +53,9 @@ export async function GET(request: Request) {
     .orderBy("fecha", "desc")
     .select("id", "fecha", "peso", "cintura", "nota", "foto_path");
 
-  return NextResponse.json({ entradas });
+  const resumen = calcularResumen(entradas);
+
+  return NextResponse.json({ entradas, resumen });
 }
 
 export async function POST(request: Request) {

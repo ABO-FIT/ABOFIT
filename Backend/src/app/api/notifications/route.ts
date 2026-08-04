@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
+import { generarRecordatoriosCliente } from "@/lib/recordatorios";
 
 export async function GET(request: Request) {
   const sesion = obtenerSesion(request);
   if (!sesion) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 });
+  }
+
+  if (sesion.rol === "Cliente") {
+    await generarRecordatoriosCliente(sesion.userId);
   }
 
   const notificaciones = await db("notifications")

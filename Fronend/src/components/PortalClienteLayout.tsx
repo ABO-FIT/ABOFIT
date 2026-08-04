@@ -1,9 +1,11 @@
 import SidebarLayout, { type EnlaceNav } from "./SidebarLayout";
 
 const ENLACES: EnlaceNav[] = [
+  { to: "/portal/hoy", label: "Hoy", icon: "★" },
   { to: "/portal/mi-plan", label: "Mi plan", icon: "▤" },
   { to: "/portal/mis-rutinas", label: "Mis entrenamientos", icon: "✓" },
   { to: "/portal/mi-progreso", label: "Mi progreso", icon: "▲" },
+  { to: "/portal/mi-nutricion", label: "Mi nutrición", icon: "◆" },
   { to: "/portal/catalogo", label: "Suplementos", icon: "▦" },
   { to: "/portal/carrito", label: "Carrito", icon: "▣" },
   { to: "/portal/pedidos", label: "Mis pedidos", icon: "▣" },

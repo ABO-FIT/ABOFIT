@@ -167,12 +167,59 @@ export interface ProgressEntry {
   foto_path: string | null;
 }
 
+export interface ResumenProgreso {
+  totalRegistros: number;
+  pesoInicial: number | null;
+  pesoActual: number | null;
+  cambioPeso: number | null;
+  cambioCintura: number | null;
+  diasSinRegistrar: number | null;
+}
+
 export function obtenerProgreso(token: string) {
-  return request<{ entradas: ProgressEntry[] }>("/api/client/progress", "GET", undefined, token);
+  return request<{ entradas: ProgressEntry[]; resumen: ResumenProgreso }>("/api/client/progress", "GET", undefined, token);
 }
 
 export function registrarProgreso(token: string, datos: FormData) {
   return request<{ id: number; message: string }>("/api/client/progress", "POST", datos, token);
+}
+
+export type HoyRespuesta =
+  | { asignado: false }
+  | { asignado: true; diaHoy: DiaRutina | null; completadoHoy: boolean; comidas: Comida[] };
+
+export function obtenerHoy(token: string) {
+  return request<HoyRespuesta>("/api/client/hoy", "GET", undefined, token);
+}
+
+export interface Logro {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  conseguido: boolean;
+}
+
+export function obtenerLogros(token: string) {
+  return request<{ logros: Logro[] }>("/api/client/logros", "GET", undefined, token);
+}
+
+export interface RegistroNutricion {
+  id: number;
+  fecha: string;
+  tipo: string;
+  descripcion: string;
+}
+
+export function obtenerNutricion(token: string) {
+  return request<{ registros: RegistroNutricion[] }>("/api/client/nutricion", "GET", undefined, token);
+}
+
+export function registrarNutricion(token: string, tipo: string, descripcion: string) {
+  return request<{ id: number; message: string }>("/api/client/nutricion", "POST", { tipo, descripcion }, token);
+}
+
+export function eliminarRegistroNutricion(token: string, id: number) {
+  return request<{ message: string }>(`/api/client/nutricion/${id}`, "DELETE", undefined, token);
 }
 
 export interface Mensaje {

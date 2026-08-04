@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { obtenerProgreso, registrarProgreso, type ProgressEntry } from "../../api/client";
+import { obtenerProgreso, registrarProgreso, type ProgressEntry, type ResumenProgreso } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
@@ -8,6 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 export default function MiProgreso() {
   const { token } = useAuth();
   const [entradas, setEntradas] = useState<ProgressEntry[]>([]);
+  const [resumen, setResumen] = useState<ResumenProgreso | null>(null);
   const [peso, setPeso] = useState("");
   const [cintura, setCintura] = useState("");
   const [nota, setNota] = useState("");
@@ -19,7 +20,10 @@ export default function MiProgreso() {
   function cargar() {
     if (!token) return;
     obtenerProgreso(token)
-      .then(({ entradas }) => setEntradas(entradas))
+      .then(({ entradas, resumen }) => {
+        setEntradas(entradas);
+        setResumen(resumen);
+      })
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar el progreso."));
   }
 
@@ -62,6 +66,36 @@ export default function MiProgreso() {
   return (
     <main className="wide">
       <h1>Mi Progreso</h1>
+
+      {resumen && resumen.totalRegistros >= 2 && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <h2 style={{ margin: "0 0 8px" }}>Comparativa</h2>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
+            {resumen.cambioPeso !== null && (
+              <div>
+                <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>Cambio de peso</p>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 20 }}>
+                  {resumen.cambioPeso > 0 ? "+" : ""}
+                  {resumen.cambioPeso} kg
+                </p>
+              </div>
+            )}
+            {resumen.cambioCintura !== null && (
+              <div>
+                <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>Cambio de cintura</p>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 20 }}>
+                  {resumen.cambioCintura > 0 ? "+" : ""}
+                  {resumen.cambioCintura} cm
+                </p>
+              </div>
+            )}
+            <div>
+              <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>Registros totales</p>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: 20 }}>{resumen.totalRegistros}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <h2>Nuevo registro</h2>
