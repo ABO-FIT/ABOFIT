@@ -1,8 +1,37 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { money } from "../../lib/money";
 import { obtenerCatalogo, obtenerMiPlan, type MiPlanRespuesta, type Producto } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+
+function SeccionDesplegable({ titulo, children }: { titulo: string; children: ReactNode }) {
+  const [abierto, setAbierto] = useState(false);
+
+  return (
+    <div className="card" style={{ marginTop: 16 }}>
+      <button
+        type="button"
+        onClick={() => setAbierto((v) => !v)}
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          background: "transparent",
+          color: "var(--text)",
+          padding: 0,
+          fontFamily: "var(--disp)",
+          fontSize: 20,
+          fontWeight: 700,
+        }}
+      >
+        {titulo}
+        <span style={{ fontSize: 14, color: "var(--muted)" }}>{abierto ? "▲ Ocultar" : "▼ Ver"}</span>
+      </button>
+      {abierto && <div style={{ marginTop: 16 }}>{children}</div>}
+    </div>
+  );
+}
 
 export default function MiPlan() {
   const { token } = useAuth();
@@ -113,25 +142,26 @@ export default function MiPlan() {
         </>
       )}
 
-      <h2 style={{ marginTop: 24 }}>Rutina semanal</h2>
-      <div style={{ display: "grid", gap: 12 }}>
-        {rutina.map((dia) => (
-          <div key={dia.id} className="card">
-            <strong>
-              {dia.day} — {dia.focus}
-            </strong>
-            <ul>
-              {dia.exercises.map((ejercicio) => (
-                <li key={ejercicio}>{ejercicio}</li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+      <SeccionDesplegable titulo="Rutina semanal">
+        <div style={{ display: "grid", gap: 12 }}>
+          {rutina.map((dia) => (
+            <div key={dia.id} className="card">
+              <strong>
+                {dia.day} — {dia.focus}
+              </strong>
+              <ul>
+                {dia.exercises.map((ejercicio) => (
+                  <li key={ejercicio}>{ejercicio}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          {rutina.length === 0 && <p style={{ color: "var(--muted)" }}>Aún no tienes una rutina asignada.</p>}
+        </div>
+      </SeccionDesplegable>
 
       {dieta && (
-        <>
-          <h2 style={{ marginTop: 24 }}>Plan de alimentación</h2>
+        <SeccionDesplegable titulo="Plan de alimentación">
           <p style={{ color: "var(--muted)" }}>{dieta.nota}</p>
           <div style={{ display: "grid", gap: 8 }}>
             {dieta.comidas.map((comida) => (
@@ -141,7 +171,7 @@ export default function MiPlan() {
               </div>
             ))}
           </div>
-        </>
+        </SeccionDesplegable>
       )}
     </main>
   );
