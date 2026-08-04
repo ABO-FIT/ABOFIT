@@ -6,9 +6,11 @@ import {
   guardarEvaluacion,
   obtenerDetalleCliente,
   obtenerObjetivos,
+  obtenerPlanes,
   type DetalleClienteRespuesta,
   type EvaluacionPayload,
   type GoalAdmin,
+  type PlanAdmin,
 } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import RutinaBuilder from "./RutinaBuilder";
@@ -35,6 +37,7 @@ export default function ClienteDetalle() {
   const [datos, setDatos] = useState<DetalleClienteRespuesta | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [objetivos, setObjetivos] = useState<GoalAdmin[]>([]);
+  const [planes, setPlanes] = useState<PlanAdmin[]>([]);
 
   const [evaluacion, setEvaluacion] = useState<EvaluacionPayload>({});
   const [mensajeEval, setMensajeEval] = useState<string | null>(null);
@@ -65,6 +68,7 @@ export default function ClienteDetalle() {
   useEffect(cargar, [token, clientId]);
   useEffect(() => {
     obtenerObjetivos(token).then(({ goals }) => setObjetivos(goals)).catch(() => {});
+    obtenerPlanes().then(({ planes }) => setPlanes(planes)).catch(() => {});
   }, [token]);
 
   async function handleGuardarEvaluacion() {
@@ -122,8 +126,9 @@ export default function ClienteDetalle() {
           <label>Plan</label>
           <select value={cliente.planKey ?? ""} onChange={(e) => handleCambiarPlan(e.target.value)}>
             <option value="" disabled>Elegir plan</option>
-            <option value="A">Plan A</option>
-            <option value="B">Plan B</option>
+            {planes.map((p) => (
+              <option key={p.key} value={p.key}>{p.name}</option>
+            ))}
           </select>
         </div>
         <div>

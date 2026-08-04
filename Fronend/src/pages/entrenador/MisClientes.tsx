@@ -6,10 +6,12 @@ import {
   crearClienteDirecto,
   obtenerMisClientes,
   obtenerObjetivos,
+  obtenerPlanes,
   type ClienteBuscado,
   type ClienteResumen,
   type GoalAdmin,
   type NuevoClientePayload,
+  type PlanAdmin,
 } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 
@@ -19,7 +21,7 @@ const NUEVO_CLIENTE_INICIAL: NuevoClientePayload = {
   correo: "",
   usuario: "",
   telefono: "",
-  planKey: "A",
+  planKey: "",
   goalKey: "",
 };
 
@@ -32,7 +34,8 @@ export default function MisClientes() {
   const [mostrarBuscar, setMostrarBuscar] = useState(false);
   const [usuarioBuscado, setUsuarioBuscado] = useState("");
   const [encontrado, setEncontrado] = useState<ClienteBuscado | null>(null);
-  const [planAsignar, setPlanAsignar] = useState("A");
+  const [planes, setPlanes] = useState<PlanAdmin[]>([]);
+  const [planAsignar, setPlanAsignar] = useState("");
   const [goalAsignar, setGoalAsignar] = useState("");
   const [errorBuscar, setErrorBuscar] = useState<string | null>(null);
 
@@ -56,6 +59,13 @@ export default function MisClientes() {
       if (goals.length > 0) {
         setGoalAsignar((actual) => actual || goals[0].key);
         setNuevoCliente((n) => ({ ...n, goalKey: n.goalKey || goals[0].key }));
+      }
+    }).catch(() => {});
+    obtenerPlanes().then(({ planes }) => {
+      setPlanes(planes);
+      if (planes.length > 0) {
+        setPlanAsignar((actual) => actual || planes[0].key);
+        setNuevoCliente((n) => ({ ...n, planKey: n.planKey || planes[0].key }));
       }
     }).catch(() => {});
   }, [token]);
@@ -143,8 +153,9 @@ export default function MisClientes() {
 
               <label htmlFor="planAsignar">Plan</label>
               <select id="planAsignar" value={planAsignar} onChange={(e) => setPlanAsignar(e.target.value)}>
-                <option value="A">Plan A</option>
-                <option value="B">Plan B</option>
+                {planes.map((p) => (
+                  <option key={p.key} value={p.key}>{p.name}</option>
+                ))}
               </select>
 
               <label htmlFor="goalAsignar">Objetivo</label>
@@ -183,8 +194,9 @@ export default function MisClientes() {
 
             <label htmlFor="planNuevo">Plan</label>
             <select id="planNuevo" value={nuevoCliente.planKey} onChange={(e) => setNuevoCliente({ ...nuevoCliente, planKey: e.target.value })}>
-              <option value="A">Plan A</option>
-              <option value="B">Plan B</option>
+              {planes.map((p) => (
+                <option key={p.key} value={p.key}>{p.name}</option>
+              ))}
             </select>
 
             <label htmlFor="goalNuevo">Objetivo</label>

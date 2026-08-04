@@ -34,7 +34,8 @@ export default function MiPlan() {
   if (!datos.asignado) {
     return (
       <main className="wide">
-        <h1>Mi Plan</h1>
+        <span className="eyebrow">Tu suscripción</span>
+        <h1>Mi plan</h1>
         <p>Aún no tienes un plan asignado. Tu entrenador lo asignará próximamente.</p>
       </main>
     );
@@ -44,19 +45,26 @@ export default function MiPlan() {
 
   return (
     <main className="wide">
-      <h1>Mi Plan</h1>
-
-      {goal && (
-        <span className="tag" style={{ background: `${goal.color}22`, color: goal.color }}>
-          {goal.shortLabel}
-        </span>
-      )}
+      <span className="eyebrow">Tu suscripción</span>
+      <h1>Mi plan</h1>
 
       {plan && (
-        <div className="card" style={{ marginTop: 16 }}>
-          <h2>{plan.name}</h2>
-          <p style={{ fontWeight: 700, fontSize: 20 }}>{money(plan.price)}/mes</p>
-          <p style={{ color: "var(--muted)" }}>{plan.description}</p>
+        <div className="card" style={{ background: "var(--ink)", color: "#fff", borderColor: "var(--ink)" }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <span className={`tag ${plan.key === "B" ? "b" : "a"}`}>{plan.name}</span>
+            {goal && (
+              <span className="tag" style={{ background: goal.color, color: "#fff" }}>
+                {goal.shortLabel}
+              </span>
+            )}
+          </div>
+          <h2 style={{ fontFamily: "var(--disp)", fontSize: 26, margin: "12px 0 6px", color: "#fff" }}>{plan.name}</h2>
+          <p style={{ color: "#aeb4c0", margin: 0, lineHeight: 1.6 }}>{plan.description}</p>
+          {goal && <div style={{ color: "#cfd4dd", marginTop: 10, fontSize: 13 }}>Objetivo: {goal.label}</div>}
+          <div style={{ fontFamily: "var(--disp)", fontWeight: 700, fontSize: 34, color: "#fff", marginTop: 16 }}>
+            {money(plan.price)}
+            <span style={{ fontSize: 14, color: "#8b92a0", fontWeight: 500 }}> / mes</span>
+          </div>
         </div>
       )}
 

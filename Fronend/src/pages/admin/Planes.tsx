@@ -1,12 +1,19 @@
-import { useEffect, useState } from "react";
-import { editarPlan, obtenerPlanesAdmin, type PlanAdmin } from "../../api/client";
+import { useEffect, useState, type FormEvent } from "react";
+import { crearPlan, editarPlan, eliminarPlan, obtenerPlanesAdmin, type PlanAdmin } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import { money } from "../../lib/money";
+
+const VACIO = { name: "", price: 0, description: "", includesDiet: false };
 
 export default function Planes() {
   const { token } = useAuth();
   const [planes, setPlanes] = useState<PlanAdmin[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [mensaje, setMensaje] = useState<string | null>(null);
+
+  const [editando, setEditando] = useState<PlanAdmin | null>(null);
+  const [creando, setCreando] = useState(false);
+  const [form, setForm] = useState(VACIO);
+  const [guardando, setGuardando] = useState(false);
 
   function cargar() {
     if (!token) return;
@@ -17,56 +24,147 @@ export default function Planes() {
 
   useEffect(cargar, [token]);
 
-  function actualizarCampo(key: string, cambios: Partial<PlanAdmin>) {
-    setPlanes(planes.map((p) => (p.key === key ? { ...p, ...cambios } : p)));
+  function abrirEditar(plan: PlanAdmin) {
+    setEditando(plan);
+    setForm({ name: plan.name, price: plan.price, description: plan.description, includesDiet: plan.includes_diet });
   }
 
-  async function guardar(plan: PlanAdmin) {
+  function abrirCrear() {
+    setCreando(true);
+    setForm(VACIO);
+  }
+
+  function cerrar() {
+    setEditando(null);
+    setCreando(false);
+    setForm(VACIO);
+  }
+
+  async function handleGuardar(event: FormEvent) {
+    event.preventDefault();
     if (!token) return;
     setError(null);
-    setMensaje(null);
+    setGuardando(true);
+
     try {
-      await editarPlan(token, plan.key, {
-        name: plan.name,
-        price: plan.price,
-        includesDiet: plan.includes_diet,
-        description: plan.description,
-      });
-      setMensaje(`Plan ${plan.key} actualizado.`);
+      if (editando) {
+        await editarPlan(token, editando.key, form);
+      } else {
+        await crearPlan(token, form);
+      }
+      cerrar();
+      cargar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function handleEliminar(key: string, name: string) {
+    if (!token) return;
+    if (!window.confirm(`¿Eliminar "${name}"?`)) return;
+    setError(null);
+    try {
+      await eliminarPlan(token, key);
+      cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
     }
   }
 
+  const modalAbierto = editando !== null || creando;
+
   return (
     <main className="wide">
-      <h1>Planes</h1>
+      <div className="page-h">
+        <div>
+          <span className="eyebrow">Servicios ABOFIT</span>
+          <h1>Planes</h1>
+        </div>
+        <button type="button" onClick={abrirCrear}>+ Nuevo plan</button>
+      </div>
 
-      {mensaje && <p role="status">{mensaje}</p>}
-      {error && <p role="alert">{error}</p>}
+      {error && !modalAbierto && <p role="alert" style={{ marginTop: 12 }}>{error}</p>}
 
-      <div style={{ display: "grid", gap: 16 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginTop: 16 }}>
         {planes.map((plan) => (
-          <div key={plan.key} className="card">
-            <h3>Plan {plan.key}</h3>
-            <label>Nombre</label>
-            <input value={plan.name} onChange={(e) => actualizarCampo(plan.key, { name: e.target.value })} />
-            <label>Precio (RD$/mes)</label>
-            <input type="number" value={plan.price} onChange={(e) => actualizarCampo(plan.key, { price: Number(e.target.value) })} />
-            <label>Descripción</label>
-            <textarea rows={2} value={plan.description} onChange={(e) => actualizarCampo(plan.key, { description: e.target.value })} />
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={plan.includes_diet}
-                onChange={(e) => actualizarCampo(plan.key, { includes_diet: e.target.checked })}
-              />
-              Incluye dieta
-            </label>
-            <button type="button" onClick={() => guardar(plan)} style={{ marginTop: 8 }}>Guardar</button>
+          <div key={plan.key} className="card" style={{ flex: "1 1 260px", minWidth: 260 }}>
+            <span className={`tag ${plan.key === "B" ? "b" : "a"}`}>{plan.name}</span>
+            <h3 style={{ fontFamily: "var(--disp)", fontSize: 21, margin: "12px 0 6px" }}>{plan.name}</h3>
+            <p style={{ color: "var(--muted)", margin: 0, lineHeight: 1.6 }}>{plan.description}</p>
+            <div style={{ fontFamily: "var(--disp)", fontWeight: 700, fontSize: 32, color: "var(--accent2)", marginTop: 14 }}>
+              {money(plan.price)}
+              <span style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}> / mes</span>
+            </div>
+            <ul style={{ margin: "14px 0 0", paddingLeft: 18, color: "#3a4150", lineHeight: 1.9, fontSize: 14 }}>
+              <li>Rutina personalizada con seguimiento</li>
+              <li>Registro de progreso y fotos</li>
+              <li>Contacto directo con tu entrenador</li>
+              {plan.includes_diet && <li>Plan de alimentación incluido</li>}
+            </ul>
+            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+              <button type="button" className="secondary" onClick={() => abrirEditar(plan)}>Editar</button>
+              <button type="button" className="secondary" style={{ color: "var(--accent2)" }} onClick={() => handleEliminar(plan.key, plan.name)}>
+                Eliminar
+              </button>
+            </div>
           </div>
         ))}
       </div>
+
+      {modalAbierto && (
+        <div className="modal-overlay" onClick={cerrar}>
+          <div className="modal-box" style={{ maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="modal-close" aria-label="Cerrar" onClick={cerrar}>×</button>
+            <h3 style={{ fontFamily: "var(--disp)", textTransform: "uppercase", margin: "0 0 10px" }}>
+              {editando ? "Editar plan" : "Nuevo plan"}
+            </h3>
+            <form onSubmit={handleGuardar}>
+              <label>Nombre del plan</label>
+              <input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Plan C — Premium"
+                required
+              />
+
+              <label>Precio mensual (RD$)</label>
+              <input
+                type="number"
+                value={form.price || ""}
+                onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                required
+              />
+
+              <label>Descripción</label>
+              <input
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="Describe qué incluye este plan"
+                required
+              />
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <input
+                  type="checkbox"
+                  id="incluye-dieta"
+                  checked={form.includesDiet}
+                  onChange={(e) => setForm({ ...form, includesDiet: e.target.checked })}
+                />
+                <label htmlFor="incluye-dieta" style={{ margin: 0, cursor: "pointer" }}>Incluye plan de alimentación</label>
+              </div>
+
+              {error && <p role="alert">{error}</p>}
+
+              <div style={{ display: "flex", gap: 8, marginTop: 18 }}>
+                <button type="button" className="secondary" onClick={cerrar}>Cancelar</button>
+                <button type="submit" disabled={guardando}>{editando ? "Guardar" : "Crear plan"}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

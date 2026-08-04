@@ -38,3 +38,35 @@ export async function PUT(request: Request, { params }: { params: { key: string 
 
   return NextResponse.json({ message: "Plan actualizado correctamente." });
 }
+
+export async function DELETE(request: Request, { params }: { params: { key: string } }) {
+  const sesion = obtenerSesion(request);
+  if (!sesion || sesion.rol !== "Administrador") {
+    return NextResponse.json({ error: "No autorizado." }, { status: 403 });
+  }
+
+  const plan = await db("plans").where({ key: params.key }).first();
+  if (!plan) {
+    return NextResponse.json({ error: "Plan no encontrado." }, { status: 404 });
+  }
+
+  const clientesConEstePlan = await db("users").where({ plan_key: params.key }).count("id as total").first<{ total: number } | undefined>();
+  if (Number(clientesConEstePlan?.total ?? 0) > 0) {
+    return NextResponse.json({ error: "Hay clientes con este plan asignado. Reasígnalos antes de eliminarlo." }, { status: 409 });
+  }
+
+  await db("plans").where({ key: params.key }).delete();
+
+  const admin = await db("users").where({ id: sesion.userId }).first();
+  await registrarAuditoria({
+    adminId: sesion.userId,
+    adminNombre: `${admin.nombre} ${admin.apellido}`,
+    targetType: "plan",
+    targetId: 0,
+    targetNombre: plan.name,
+    accion: "eliminar",
+    antes: plan,
+  });
+
+  return NextResponse.json({ message: "Plan eliminado correctamente." });
+}

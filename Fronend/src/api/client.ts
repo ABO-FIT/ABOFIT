@@ -610,12 +610,24 @@ export interface PlanAdmin {
   description: string;
 }
 
+export function obtenerPlanes() {
+  return request<{ planes: PlanAdmin[] }>("/api/plans", "GET");
+}
+
 export function obtenerPlanesAdmin(token: string) {
   return request<{ planes: PlanAdmin[] }>("/api/admin/plans", "GET", undefined, token);
 }
 
 export function editarPlan(token: string, key: string, payload: { name: string; price: number; includesDiet: boolean; description: string }) {
   return request<{ message: string }>(`/api/admin/plans/${key}`, "PUT", payload, token);
+}
+
+export function crearPlan(token: string, payload: { name: string; price: number; includesDiet: boolean; description: string }) {
+  return request<{ key: string; message: string }>("/api/admin/plans", "POST", payload, token);
+}
+
+export function eliminarPlan(token: string, key: string) {
+  return request<{ message: string }>(`/api/admin/plans/${key}`, "DELETE", undefined, token);
 }
 
 export interface PedidoAdmin {
