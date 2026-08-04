@@ -1,8 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
 import { money } from "../../lib/money";
-import { obtenerCatalogo, obtenerMiPlan, type MiPlanRespuesta, type Producto } from "../../api/client";
+import { agregarAlCarrito, obtenerCatalogo, obtenerMiPlan, type MiPlanRespuesta, type Producto } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import ProductModal from "../../components/ProductModal";
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 function SeccionDesplegable({ titulo, children }: { titulo: string; children: ReactNode }) {
   const [abierto, setAbierto] = useState(false);
@@ -38,6 +40,8 @@ export default function MiPlan() {
   const [datos, setDatos] = useState<MiPlanRespuesta | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [recomendados, setRecomendados] = useState<Producto[]>([]);
+  const [productoAbierto, setProductoAbierto] = useState<number | null>(null);
+  const [mensaje, setMensaje] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -81,6 +85,18 @@ export default function MiPlan() {
 
   const { plan, goal, rutina, dieta, caloriasObjetivo, proteinaObjetivoG } = datos;
 
+  async function handleAgregar(productId: number) {
+    if (!token) return;
+    setMensaje(null);
+    try {
+      await agregarAlCarrito(token, productId);
+      setMensaje("Producto agregado al carrito.");
+      setProductoAbierto(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    }
+  }
+
   return (
     <main className="wide">
       <span className="eyebrow">Tu suscripción</span>
@@ -123,23 +139,47 @@ export default function MiPlan() {
         </div>
       )}
 
+      {mensaje && <p role="status">{mensaje}</p>}
+
       {recomendados.length > 0 && (
         <>
           <h2 style={{ marginTop: 24 }}>Recomendado para tu objetivo</h2>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
             {recomendados.map((producto) => (
-              <Link
-                key={producto.id}
-                to="/portal/catalogo"
-                className="card"
-                style={{ flex: "1 1 200px", minWidth: 200, textDecoration: "none", color: "inherit" }}
-              >
-                <strong>{producto.name}</strong>
-                <p style={{ margin: "6px 0 0", color: "var(--accent2)", fontWeight: 700 }}>{money(producto.price)}</p>
-              </Link>
+              <button key={producto.id} type="button" className="product-card" onClick={() => setProductoAbierto(producto.id)}>
+                <div
+                  className="product-image"
+                  style={producto.images[0] ? { backgroundImage: `url(${API_URL}${producto.images[0]})` } : undefined}
+                >
+                  {!producto.images[0] && producto.cat}
+                  {producto.images.length > 1 && (
+                    <span style={{ position: "absolute", bottom: 7, right: 8, background: "rgba(0,0,0,.55)", color: "#fff", fontSize: 11, fontWeight: 600, padding: "2px 7px", borderRadius: 20 }}>
+                      +{producto.images.length - 1}
+                    </span>
+                  )}
+                </div>
+                <div className="product-body">
+                  {producto.recomendado && (
+                    <span className="tag" style={{ background: "var(--oks)", color: "var(--ok)", marginBottom: 6 }}>
+                      Recomendado
+                    </span>
+                  )}
+                  <h3 style={{ margin: "4px 0", fontSize: 16 }}>{producto.name}</h3>
+                  <p style={{ color: "var(--accent2)", fontWeight: 700, fontSize: 18, margin: 0 }}>{money(producto.price)}</p>
+                  <div className="product-tags">
+                    {producto.goals.map((g) => (
+                      <span key={g} className="tag">{g}</span>
+                    ))}
+                  </div>
+                </div>
+              </button>
             ))}
           </div>
         </>
+      )}
+
+      {productoAbierto && (
+        <ProductModal productId={productoAbierto} onClose={() => setProductoAbierto(null)} onAgregar={handleAgregar} />
       )}
 
       <SeccionDesplegable titulo="Rutina semanal">
