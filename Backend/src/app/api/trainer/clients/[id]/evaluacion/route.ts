@@ -25,7 +25,16 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   const {
     peso, pesoUnidad, altura, alturaUnidad, edad, sexo, nivelActividad,
     cintura, cadera, presionSistolica, presionDiastolica,
+    porcentajeGrasa, porcentajeMasaMuscular,
   } = body as Record<string, unknown>;
+
+  if (typeof porcentajeGrasa === "number" && (porcentajeGrasa < 0 || porcentajeGrasa > 75)) {
+    return NextResponse.json({ error: "El porcentaje de grasa corporal no es válido." }, { status: 400 });
+  }
+
+  if (typeof porcentajeMasaMuscular === "number" && (porcentajeMasaMuscular < 0 || porcentajeMasaMuscular > 100)) {
+    return NextResponse.json({ error: "El porcentaje de masa muscular no es válido." }, { status: 400 });
+  }
 
   if (pesoUnidad && !["kg", "lb"].includes(pesoUnidad as string)) {
     return NextResponse.json({ error: "Unidad de peso inválida." }, { status: 400 });
@@ -55,6 +64,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     cadera: (cadera as number | undefined) ?? null,
     presion_sistolica: (presionSistolica as number | undefined) ?? null,
     presion_diastolica: (presionDiastolica as number | undefined) ?? null,
+    porcentaje_grasa: (porcentajeGrasa as number | undefined) ?? null,
+    porcentaje_masa_muscular: (porcentajeMasaMuscular as number | undefined) ?? null,
   };
 
   await db("users").where({ id: clientId }).update(valores);
@@ -83,7 +94,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const historial = await db("client_evaluations")
     .where({ client_id: clientId })
     .orderBy("created_at", "desc")
-    .select("id", "peso", "peso_unidad", "altura", "altura_unidad", "edad", "sexo", "nivel_actividad", "cintura", "cadera", "presion_sistolica", "presion_diastolica", "created_at");
+    .select("id", "peso", "peso_unidad", "altura", "altura_unidad", "edad", "sexo", "nivel_actividad", "cintura", "cadera", "presion_sistolica", "presion_diastolica", "porcentaje_grasa", "porcentaje_masa_muscular", "created_at");
 
   return NextResponse.json({ historial });
 }

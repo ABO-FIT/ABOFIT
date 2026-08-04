@@ -70,6 +70,8 @@ export default function ClienteDetalle() {
           cadera: respuesta.cliente.cadera ? Number(respuesta.cliente.cadera) : undefined,
           presionSistolica: respuesta.cliente.presionSistolica ?? undefined,
           presionDiastolica: respuesta.cliente.presionDiastolica ?? undefined,
+          porcentajeGrasa: respuesta.cliente.porcentajeGrasa ? Number(respuesta.cliente.porcentajeGrasa) : undefined,
+          porcentajeMasaMuscular: respuesta.cliente.porcentajeMasaMuscular ? Number(respuesta.cliente.porcentajeMasaMuscular) : undefined,
         });
       })
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar el cliente."));
@@ -239,6 +241,16 @@ export default function ClienteDetalle() {
                 <input type="number" placeholder="Diastólica" value={evaluacion.presionDiastolica ?? ""} onChange={(e) => setEvaluacion({ ...evaluacion, presionDiastolica: Number(e.target.value) })} />
               </div>
             </div>
+
+            <div>
+              <label>% de grasa corporal</label>
+              <input type="number" step="0.1" value={evaluacion.porcentajeGrasa ?? ""} onChange={(e) => setEvaluacion({ ...evaluacion, porcentajeGrasa: Number(e.target.value) })} />
+            </div>
+
+            <div>
+              <label>% de masa muscular</label>
+              <input type="number" step="0.1" value={evaluacion.porcentajeMasaMuscular ?? ""} onChange={(e) => setEvaluacion({ ...evaluacion, porcentajeMasaMuscular: Number(e.target.value) })} />
+            </div>
           </div>
 
           <button type="button" onClick={handleGuardarEvaluacion} disabled={guardandoEval} style={{ marginTop: 16 }}>
@@ -263,10 +275,22 @@ export default function ClienteDetalle() {
             <div className="card">
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>Calorías objetivo</p>
               <p style={{ margin: 0, fontWeight: 700 }}>{salud.caloriasObjetivo ? `${salud.caloriasObjetivo} kcal` : "—"}</p>
+              {salud.formulaCalorica && (
+                <p style={{ margin: 0, color: "var(--muted)", fontSize: 11 }}>
+                  {salud.formulaCalorica === "katch_mcardle" ? "Fórmula Katch-McArdle (usa % grasa)" : "Fórmula Mifflin-St Jeor"}
+                </p>
+              )}
             </div>
             <div className="card">
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>Proteína objetivo</p>
               <p style={{ margin: 0, fontWeight: 700 }}>{salud.proteinaObjetivoG ? `${salud.proteinaObjetivoG} g` : "—"}</p>
+            </div>
+            <div className="card">
+              <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>Masa magra / grasa</p>
+              <p style={{ margin: 0, fontWeight: 700 }}>
+                {salud.masaMagraKg ? `${salud.masaMagraKg} kg magra` : "—"}
+                {salud.masaGrasaKg ? ` / ${salud.masaGrasaKg} kg grasa` : ""}
+              </p>
             </div>
           </div>
 
@@ -281,6 +305,8 @@ export default function ClienteDetalle() {
                   {registro.presion_sistolica && registro.presion_diastolica
                     ? ` · Presión ${registro.presion_sistolica}/${registro.presion_diastolica}`
                     : ""}
+                  {registro.porcentaje_grasa ? ` · Grasa ${registro.porcentaje_grasa}%` : ""}
+                  {registro.porcentaje_masa_muscular ? ` · Masa muscular ${registro.porcentaje_masa_muscular}%` : ""}
                 </p>
               </div>
             ))}

@@ -31,6 +31,8 @@ export interface DatosSalud {
   presionSistolica: number | null;
   presionDiastolica: number | null;
   goalKey: string | null;
+  porcentajeGrasa: number | null;
+  porcentajeMasaMuscular: number | null;
 }
 
 export function libraAKg(lb: number): number {
@@ -75,6 +77,9 @@ export interface ResultadoSalud {
   presionClasificacion: string | null;
   caloriasObjetivo: number | null;
   proteinaObjetivoG: number | null;
+  masaMagraKg: number | null;
+  masaGrasaKg: number | null;
+  formulaCalorica: "katch_mcardle" | "mifflin_st_jeor" | null;
 }
 
 export function calcularSalud(datos: DatosSalud): ResultadoSalud {
@@ -86,9 +91,22 @@ export function calcularSalud(datos: DatosSalud): ResultadoSalud {
     presionClasificacion: null,
     caloriasObjetivo: null,
     proteinaObjetivoG: null,
+    masaMagraKg: null,
+    masaGrasaKg: null,
+    formulaCalorica: null,
   };
 
-  const { pesoKg, alturaCm, edad, sexo, nivelActividad, cintura, cadera, presionSistolica, presionDiastolica, goalKey } = datos;
+  const {
+    pesoKg, alturaCm, edad, sexo, nivelActividad, cintura, cadera, presionSistolica, presionDiastolica, goalKey,
+    porcentajeGrasa, porcentajeMasaMuscular,
+  } = datos;
+
+  if (pesoKg && porcentajeGrasa) {
+    resultado.masaGrasaKg = Number((pesoKg * (porcentajeGrasa / 100)).toFixed(1));
+    resultado.masaMagraKg = Number((pesoKg - resultado.masaGrasaKg).toFixed(1));
+  } else if (pesoKg && porcentajeMasaMuscular) {
+    resultado.masaMagraKg = Number((pesoKg * (porcentajeMasaMuscular / 100)).toFixed(1));
+  }
 
   if (pesoKg && alturaCm) {
     const alturaM = alturaCm / 100;
@@ -105,10 +123,18 @@ export function calcularSalud(datos: DatosSalud): ResultadoSalud {
     resultado.presionClasificacion = clasificarPresion(presionSistolica, presionDiastolica);
   }
 
-  if (pesoKg && alturaCm && edad && sexo && nivelActividad && FACTOR_ACTIVIDAD[nivelActividad]) {
-    const tmb = sexo === "male"
-      ? 10 * pesoKg + 6.25 * alturaCm - 5 * edad + 5
-      : 10 * pesoKg + 6.25 * alturaCm - 5 * edad - 161;
+  if (pesoKg && nivelActividad && FACTOR_ACTIVIDAD[nivelActividad] && ((alturaCm && edad && sexo) || resultado.masaMagraKg)) {
+    let tmb: number;
+
+    if (resultado.masaMagraKg) {
+      tmb = 370 + 21.6 * resultado.masaMagraKg;
+      resultado.formulaCalorica = "katch_mcardle";
+    } else {
+      tmb = sexo === "male"
+        ? 10 * pesoKg + 6.25 * (alturaCm as number) - 5 * (edad as number) + 5
+        : 10 * pesoKg + 6.25 * (alturaCm as number) - 5 * (edad as number) - 161;
+      resultado.formulaCalorica = "mifflin_st_jeor";
+    }
 
     const mantenimiento = tmb * FACTOR_ACTIVIDAD[nivelActividad];
     const ajuste = goalKey ? AJUSTE_OBJETIVO[goalKey] ?? 0 : 0;

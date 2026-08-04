@@ -140,7 +140,15 @@ export interface Dieta {
 
 export type MiPlanRespuesta =
   | { asignado: false }
-  | { asignado: true; plan: Plan | null; goal: Goal | null; rutina: DiaRutina[]; dieta: Dieta | null };
+  | {
+      asignado: true;
+      plan: Plan | null;
+      goal: Goal | null;
+      rutina: DiaRutina[];
+      dieta: Dieta | null;
+      caloriasObjetivo: number | null;
+      proteinaObjetivoG: number | null;
+    };
 
 export function obtenerMiPlan(token: string) {
   return request<MiPlanRespuesta>("/api/client/plan", "GET", undefined, token);
@@ -325,6 +333,8 @@ export interface ClienteDetalle {
   cadera: string | null;
   presionSistolica: number | null;
   presionDiastolica: number | null;
+  porcentajeGrasa: string | null;
+  porcentajeMasaMuscular: string | null;
 }
 
 export interface SaludCalculada {
@@ -335,6 +345,9 @@ export interface SaludCalculada {
   presionClasificacion: string | null;
   caloriasObjetivo: number | null;
   proteinaObjetivoG: number | null;
+  masaMagraKg: number | null;
+  masaGrasaKg: number | null;
+  formulaCalorica: "katch_mcardle" | "mifflin_st_jeor" | null;
 }
 
 export interface DetalleClienteRespuesta {
@@ -360,6 +373,8 @@ export interface EvaluacionPayload {
   cadera?: number;
   presionSistolica?: number;
   presionDiastolica?: number;
+  porcentajeGrasa?: number;
+  porcentajeMasaMuscular?: number;
 }
 
 export function guardarEvaluacion(token: string, clientId: number, payload: EvaluacionPayload) {
@@ -379,6 +394,8 @@ export interface EvaluacionHistorial {
   cadera: string | null;
   presion_sistolica: number | null;
   presion_diastolica: number | null;
+  porcentaje_grasa: string | null;
+  porcentaje_masa_muscular: string | null;
   created_at: string;
 }
 

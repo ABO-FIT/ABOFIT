@@ -50,7 +50,7 @@ export default function MiPlan() {
     );
   }
 
-  const { plan, goal, rutina, dieta } = datos;
+  const { plan, goal, rutina, dieta, caloriasObjetivo, proteinaObjetivoG } = datos;
 
   return (
     <main className="wide">
@@ -74,6 +74,23 @@ export default function MiPlan() {
             {money(plan.price)}
             <span style={{ fontSize: 14, color: "#8b92a0", fontWeight: 500 }}> / mes</span>
           </div>
+        </div>
+      )}
+
+      {(caloriasObjetivo || proteinaObjetivoG) && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 16 }}>
+          {caloriasObjetivo && (
+            <div className="card" style={{ flex: "1 1 160px", minWidth: 160 }}>
+              <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>Calorías diarias objetivo</p>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: 24 }}>{caloriasObjetivo} kcal</p>
+            </div>
+          )}
+          {proteinaObjetivoG && (
+            <div className="card" style={{ flex: "1 1 160px", minWidth: 160 }}>
+              <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>Proteína diaria objetivo</p>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: 24 }}>{proteinaObjetivoG} g</p>
+            </div>
+          )}
         </div>
       )}
 

@@ -40,6 +40,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
     presionSistolica: cliente.presion_sistolica,
     presionDiastolica: cliente.presion_diastolica,
     goalKey: cliente.goal_key,
+    porcentajeGrasa: cliente.porcentaje_grasa ? Number(cliente.porcentaje_grasa) : null,
+    porcentajeMasaMuscular: cliente.porcentaje_masa_muscular ? Number(cliente.porcentaje_masa_muscular) : null,
   });
 
   let porcentajeSemana = 0;
@@ -87,6 +89,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
       cadera: cliente.cadera,
       presionSistolica: cliente.presion_sistolica,
       presionDiastolica: cliente.presion_diastolica,
+      porcentajeGrasa: cliente.porcentaje_grasa,
+      porcentajeMasaMuscular: cliente.porcentaje_masa_muscular,
     },
     salud,
     porcentajeSemana,
