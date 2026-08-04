@@ -9,6 +9,11 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     return NextResponse.json({ error: "Producto no encontrado." }, { status: 404 });
   }
 
+  const imagenes = await db("product_images")
+    .where({ product_id: producto.id })
+    .orderBy("position", "asc")
+    .select("path");
+
   return NextResponse.json({
     producto: {
       id: producto.id,
@@ -16,7 +21,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
       name: producto.name,
       price: producto.price,
       stock: producto.stock,
-      imagePath: producto.image_path,
+      images: imagenes.map((img) => img.path),
       goals: parsearJson<string[]>(producto.goals),
       beneficios: producto.beneficios,
       indicaciones: producto.indicaciones,

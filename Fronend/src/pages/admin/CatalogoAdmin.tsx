@@ -8,6 +8,7 @@ import {
   obtenerProductosAdmin,
   type CategoriaAdmin,
   type GoalAdmin,
+  type ImagenProducto,
   type ProductoAdmin,
   type ProductoFormPayload,
 } from "../../api/client";
@@ -15,6 +16,7 @@ import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const MAX_IMAGENES = 3;
 
 const VACIO: ProductoFormPayload = {
   cat: "", name: "", price: 0, stock: 0, goals: [],
@@ -33,6 +35,9 @@ export default function CatalogoAdmin() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [form, setForm] = useState<ProductoFormPayload>(VACIO);
   const [editandoId, setEditandoId] = useState<number | null>(null);
+  const [imagenesExistentes, setImagenesExistentes] = useState<ImagenProducto[]>([]);
+  const [imagenesEliminadas, setImagenesEliminadas] = useState<number[]>([]);
+  const [imagenesNuevas, setImagenesNuevas] = useState<File[]>([]);
   const [guardando, setGuardando] = useState(false);
 
   function cargar() {
@@ -58,20 +63,41 @@ export default function CatalogoAdmin() {
     }));
   }
 
+  const totalImagenes = imagenesExistentes.filter((img) => !imagenesEliminadas.includes(img.id)).length + imagenesNuevas.length;
+
+  function handleSeleccionarImagenes(files: FileList | null) {
+    if (!files) return;
+    const nuevas = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    const espacioDisponible = MAX_IMAGENES - totalImagenes;
+    if (espacioDisponible <= 0) {
+      setError(`Ya tienes el máximo de ${MAX_IMAGENES} imágenes.`);
+      return;
+    }
+    setImagenesNuevas((prev) => [...prev, ...nuevas.slice(0, espacioDisponible)]);
+  }
+
+  function quitarImagenExistente(id: number) {
+    setImagenesEliminadas((prev) => [...prev, id]);
+  }
+
+  function quitarImagenNueva(index: number) {
+    setImagenesNuevas((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!token) return;
     setError(null);
+    setGuardando(true);
 
     try {
+      const payload: ProductoFormPayload = { ...form, imagenesNuevas, eliminarImagenIds: imagenesEliminadas };
       if (editandoId) {
-        await editarProducto(token, editandoId, form);
+        await editarProducto(token, editandoId, payload);
       } else {
-        await crearProducto(token, form);
+        await crearProducto(token, payload);
       }
-      setForm(VACIO);
-      setEditandoId(null);
-      setMostrarForm(false);
+      cerrarForm();
       cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
@@ -87,13 +113,28 @@ export default function CatalogoAdmin() {
       beneficios: p.beneficios ?? "", indicaciones: p.indicaciones ?? "", ingredientes: p.ingredientes ?? "",
       descripcion: p.descripcion ?? "", avisoSeguridad: p.aviso_seguridad ?? "",
     });
+    setImagenesExistentes(p.images);
+    setImagenesEliminadas([]);
+    setImagenesNuevas([]);
     setMostrarForm(true);
   }
 
   function nuevo() {
     setEditandoId(null);
     setForm(VACIO);
+    setImagenesExistentes([]);
+    setImagenesEliminadas([]);
+    setImagenesNuevas([]);
     setMostrarForm(true);
+  }
+
+  function cerrarForm() {
+    setMostrarForm(false);
+    setEditandoId(null);
+    setForm(VACIO);
+    setImagenesExistentes([]);
+    setImagenesEliminadas([]);
+    setImagenesNuevas([]);
   }
 
   async function eliminar(id: number) {
@@ -138,23 +179,44 @@ export default function CatalogoAdmin() {
         ))}
       </div>
 
-      {error && <p role="alert">{error}</p>}
+      {error && !mostrarForm && <p role="alert">{error}</p>}
 
       {mostrarForm && (
-        <div className="modal-overlay" onClick={() => { setMostrarForm(false); setEditandoId(null); setForm(VACIO); }}>
+        <div className="modal-overlay" onClick={cerrarForm}>
         <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-          <button
-            type="button"
-            className="modal-close"
-            aria-label="Cerrar"
-            onClick={() => { setMostrarForm(false); setEditandoId(null); setForm(VACIO); }}
-          >
-            ×
-          </button>
+          <button type="button" className="modal-close" aria-label="Cerrar" onClick={cerrarForm}>×</button>
           <h3>{editandoId ? "Editar producto" : "Nuevo producto"}</h3>
           <form onSubmit={handleSubmit}>
-            <label>Imagen</label>
-            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setForm({ ...form, imagen: e.target.files?.[0] ?? null })} />
+            <label>Imágenes (máximo {MAX_IMAGENES}, se comprimen automáticamente a 3MB)</label>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+              {imagenesExistentes.filter((img) => !imagenesEliminadas.includes(img.id)).map((img) => (
+                <div key={img.id} style={{ position: "relative" }}>
+                  <img src={`${API_URL}${img.path}`} alt="" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8, border: "1px solid var(--line)" }} />
+                  <button
+                    type="button"
+                    onClick={() => quitarImagenExistente(img.id)}
+                    style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, padding: 0, borderRadius: "50%", fontSize: 12, lineHeight: "20px" }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              {imagenesNuevas.map((file, i) => (
+                <div key={i} style={{ position: "relative" }}>
+                  <img src={URL.createObjectURL(file)} alt="" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8, border: "1px solid var(--line)" }} />
+                  <button
+                    type="button"
+                    onClick={() => quitarImagenNueva(i)}
+                    style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, padding: 0, borderRadius: "50%", fontSize: 12, lineHeight: "20px" }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            {totalImagenes < MAX_IMAGENES && (
+              <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => handleSeleccionarImagenes(e.target.files)} />
+            )}
 
             <label>Categoría</label>
             <select value={form.cat} onChange={(e) => setForm({ ...form, cat: e.target.value })} required>
@@ -194,11 +256,11 @@ export default function CatalogoAdmin() {
             <label>Aviso de Seguridad (uno por línea)</label>
             <textarea rows={3} value={form.avisoSeguridad} onChange={(e) => setForm({ ...form, avisoSeguridad: e.target.value })} />
 
+            {error && <p role="alert">{error}</p>}
+
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
               <button type="submit" disabled={guardando}>{editandoId ? "Guardar cambios" : "Crear producto"}</button>
-              <button type="button" className="secondary" onClick={() => { setMostrarForm(false); setEditandoId(null); setForm(VACIO); }}>
-                Cancelar
-              </button>
+              <button type="button" className="secondary" onClick={cerrarForm}>Cancelar</button>
             </div>
           </form>
         </div>
@@ -208,8 +270,13 @@ export default function CatalogoAdmin() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
         {productosFiltrados.map((p) => (
           <div key={p.id} className="product-card">
-            <div className="product-image" style={p.image_path ? { backgroundImage: `url(${API_URL}${p.image_path})` } : undefined}>
-              {!p.image_path && p.cat}
+            <div className="product-image" style={p.images[0] ? { backgroundImage: `url(${API_URL}${p.images[0].path})` } : undefined}>
+              {!p.images[0] && p.cat}
+              {p.images.length > 1 && (
+                <span style={{ position: "absolute", bottom: 7, right: 8, background: "rgba(0,0,0,.55)", color: "#fff", fontSize: 11, fontWeight: 600, padding: "2px 7px", borderRadius: 20 }}>
+                  +{p.images.length - 1}
+                </span>
+              )}
             </div>
             <div className="product-body">
               <h3 style={{ margin: "4px 0", fontSize: 16 }}>{p.name}</h3>

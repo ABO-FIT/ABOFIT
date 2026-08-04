@@ -378,7 +378,7 @@ export interface Producto {
   name: string;
   price: number;
   stock: number;
-  imagePath: string | null;
+  images: string[];
   goals: string[];
   recomendado: boolean;
 }
@@ -530,6 +530,11 @@ export function eliminarGimnasio(token: string, id: number) {
   return request<{ message: string }>(`/api/admin/gyms/${id}`, "DELETE", undefined, token);
 }
 
+export interface ImagenProducto {
+  id: number;
+  path: string;
+}
+
 export interface ProductoAdmin {
   id: number;
   cat: string;
@@ -537,7 +542,7 @@ export interface ProductoAdmin {
   price: number;
   goals: string[];
   stock: number;
-  image_path: string | null;
+  images: ImagenProducto[];
   beneficios: string | null;
   indicaciones: string | null;
   ingredientes: string | null;
@@ -556,7 +561,8 @@ export interface ProductoFormPayload {
   ingredientes: string;
   descripcion: string;
   avisoSeguridad: string;
-  imagen?: File | null;
+  imagenesNuevas?: File[];
+  eliminarImagenIds?: number[];
 }
 
 function construirFormDataProducto(payload: ProductoFormPayload): FormData {
@@ -571,7 +577,12 @@ function construirFormDataProducto(payload: ProductoFormPayload): FormData {
   formData.append("ingredientes", payload.ingredientes);
   formData.append("descripcion", payload.descripcion);
   formData.append("avisoSeguridad", payload.avisoSeguridad);
-  if (payload.imagen) formData.append("imagen", payload.imagen);
+  for (const archivo of payload.imagenesNuevas ?? []) {
+    formData.append("imagenes", archivo);
+  }
+  if (payload.eliminarImagenIds?.length) {
+    formData.append("eliminarImagenIds", JSON.stringify(payload.eliminarImagenIds));
+  }
   return formData;
 }
 

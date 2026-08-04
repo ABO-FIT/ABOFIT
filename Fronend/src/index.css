@@ -372,6 +372,7 @@ tr:last-child td {
 }
 
 .product-card .product-image {
+  position: relative;
   height: 140px;
   width: 100%;
   background: linear-gradient(135deg, #16140f, #2c2114);

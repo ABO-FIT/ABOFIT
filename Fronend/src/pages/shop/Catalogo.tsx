@@ -96,9 +96,14 @@ export default function Catalogo() {
           <button key={producto.id} type="button" className="product-card" onClick={() => setProductoAbierto(producto.id)}>
             <div
               className="product-image"
-              style={producto.imagePath ? { backgroundImage: `url(${API_URL}${producto.imagePath})` } : undefined}
+              style={producto.images[0] ? { backgroundImage: `url(${API_URL}${producto.images[0]})` } : undefined}
             >
-              {!producto.imagePath && producto.cat}
+              {!producto.images[0] && producto.cat}
+              {producto.images.length > 1 && (
+                <span style={{ position: "absolute", bottom: 7, right: 8, background: "rgba(0,0,0,.55)", color: "#fff", fontSize: 11, fontWeight: 600, padding: "2px 7px", borderRadius: 20 }}>
+                  +{producto.images.length - 1}
+                </span>
+              )}
             </div>
             <div className="product-body">
               {producto.recomendado && (

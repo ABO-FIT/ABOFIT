@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   const cat = searchParams.get("cat");
   const buscar = searchParams.get("buscar")?.trim().toLowerCase();
 
-  let query = db("products").select("id", "cat", "name", "price", "goals", "stock", "image_path");
+  let query = db("products").select("id", "cat", "name", "price", "goals", "stock");
 
   if (cat) {
     query = query.where({ cat });
@@ -21,6 +21,7 @@ export async function GET(request: Request) {
   }
 
   const productos = await query.orderBy("name", "asc");
+  const imagenes = await db("product_images").orderBy("position", "asc");
 
   let goalUsuario: string | null = null;
   if (sesion?.rol === "Cliente") {
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
       name: producto.name,
       price: producto.price,
       stock: producto.stock,
-      imagePath: producto.image_path,
+      images: imagenes.filter((img) => img.product_id === producto.id).map((img) => img.path),
       goals,
       recomendado: goalUsuario ? goals.includes(goalUsuario) : false,
     };

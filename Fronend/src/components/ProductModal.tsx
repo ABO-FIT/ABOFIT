@@ -39,9 +39,11 @@ export default function ProductModal({
 }) {
   const [producto, setProducto] = useState<ProductoDetalle | null>(null);
   const [pestana, setPestana] = useState<ClavePestana>("beneficios");
+  const [imagenActiva, setImagenActiva] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setImagenActiva(0);
     obtenerProducto(productId)
       .then(({ producto }) => setProducto(producto))
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar el producto."));
@@ -63,13 +65,34 @@ export default function ProductModal({
             <div
               className="product-image"
               style={{
-                height: 160,
+                height: 220,
                 borderRadius: 8,
-                backgroundImage: producto.imagePath ? `url(${API_URL}${producto.imagePath})` : undefined,
+                backgroundImage: producto.images[imagenActiva] ? `url(${API_URL}${producto.images[imagenActiva]})` : undefined,
               }}
             >
-              {!producto.imagePath && producto.cat}
+              {!producto.images[imagenActiva] && producto.cat}
             </div>
+
+            {producto.images.length > 1 && (
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                {producto.images.map((img, i) => (
+                  <button
+                    key={img}
+                    type="button"
+                    onClick={() => setImagenActiva(i)}
+                    style={{
+                      padding: 0,
+                      border: i === imagenActiva ? "2px solid var(--accent2)" : "2px solid transparent",
+                      borderRadius: 8,
+                      background: "transparent",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <img src={`${API_URL}${img}`} alt="" style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 6, display: "block" }} />
+                  </button>
+                ))}
+              </div>
+            )}
 
             <h2 style={{ marginTop: 16 }}>{producto.name}</h2>
             <p style={{ color: "var(--accent2)", fontWeight: 700, fontSize: 20, margin: 0 }}>{money(producto.price)}</p>
