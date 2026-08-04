@@ -258,6 +258,20 @@ export default function ClienteDetalle() {
           </button>
           {mensajeEval && <p role="status">{mensajeEval}</p>}
 
+          {salud.advertenciaObjetivo && (
+            <div
+              role="alert"
+              className="card"
+              style={{ marginTop: 12, background: "#fff7ed", borderColor: "#f2811c", color: "#9a5b12" }}
+            >
+              <strong>⚠ Objetivo vs. estado actual</strong>
+              <p style={{ margin: "6px 0 0" }}>{salud.advertenciaObjetivo}</p>
+              <p style={{ margin: "6px 0 0", fontSize: 12, color: "#9a5b12" }}>
+                Esta advertencia queda registrada en la auditoría del sistema cada vez que se guarda la evaluación.
+              </p>
+            </div>
+          )}
+
           <h3 style={{ marginTop: 24 }}>Resultados</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
             <div className="card">

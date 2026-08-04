@@ -69,6 +69,22 @@ function clasificarPresion(sistolica: number, diastolica: number): string {
   return "Normal";
 }
 
+export function detectarAdvertenciaObjetivo(imcClasificacion: string | null, goalKey: string | null): string | null {
+  if (!imcClasificacion || !goalKey) {
+    return null;
+  }
+
+  if (goalKey === "masa" && (imcClasificacion === "Sobrepeso" || imcClasificacion === "Obesidad")) {
+    return `El cliente tiene objetivo de aumento de masa muscular, pero su IMC actual indica "${imcClasificacion}". El plan calórico asignado incluye un superávit; confirma que es apropiado para este caso.`;
+  }
+
+  if (goalKey === "grasa" && imcClasificacion === "Bajo peso") {
+    return `El cliente tiene objetivo de pérdida de grasa, pero su IMC actual indica "Bajo peso". El plan calórico asignado incluye un déficit; confirma que es apropiado para este caso.`;
+  }
+
+  return null;
+}
+
 export interface ResultadoSalud {
   imc: number | null;
   imcClasificacion: string | null;
@@ -80,6 +96,7 @@ export interface ResultadoSalud {
   masaMagraKg: number | null;
   masaGrasaKg: number | null;
   formulaCalorica: "katch_mcardle" | "mifflin_st_jeor" | null;
+  advertenciaObjetivo: string | null;
 }
 
 export function calcularSalud(datos: DatosSalud): ResultadoSalud {
@@ -94,6 +111,7 @@ export function calcularSalud(datos: DatosSalud): ResultadoSalud {
     masaMagraKg: null,
     masaGrasaKg: null,
     formulaCalorica: null,
+    advertenciaObjetivo: null,
   };
 
   const {
@@ -113,6 +131,8 @@ export function calcularSalud(datos: DatosSalud): ResultadoSalud {
     resultado.imc = Number((pesoKg / (alturaM * alturaM)).toFixed(1));
     resultado.imcClasificacion = clasificarImc(resultado.imc);
   }
+
+  resultado.advertenciaObjetivo = detectarAdvertenciaObjetivo(resultado.imcClasificacion, goalKey);
 
   if (cintura && cadera && sexo) {
     resultado.icc = Number((cintura / cadera).toFixed(2));

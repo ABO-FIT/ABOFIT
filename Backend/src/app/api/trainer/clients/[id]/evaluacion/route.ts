@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { obtenerSesion } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { obtenerClienteDelEntrenador } from "@/lib/trainerClient";
+import { calcularSalud, libraAKg, piesAcm } from "@/lib/salud";
+import { registrarAuditoria } from "@/lib/auditoria";
 
 const NIVELES_ACTIVIDAD = ["sedentario", "ligero", "moderado", "activo", "muy_activo"];
 
@@ -76,7 +78,38 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     ...valores,
   });
 
-  return NextResponse.json({ message: "Evaluación guardada correctamente." });
+  const pesoKg = valores.peso ? (valores.peso_unidad === "lb" ? libraAKg(valores.peso) : valores.peso) : null;
+  const alturaCm = valores.altura ? (valores.altura_unidad === "ft" ? piesAcm(valores.altura) : valores.altura) : null;
+
+  const salud = calcularSalud({
+    pesoKg,
+    alturaCm,
+    edad: valores.edad,
+    sexo: valores.sexo as "male" | "female" | null,
+    nivelActividad: valores.nivel_actividad,
+    cintura: valores.cintura,
+    cadera: valores.cadera,
+    presionSistolica: valores.presion_sistolica,
+    presionDiastolica: valores.presion_diastolica,
+    goalKey: cliente.goal_key,
+    porcentajeGrasa: valores.porcentaje_grasa,
+    porcentajeMasaMuscular: valores.porcentaje_masa_muscular,
+  });
+
+  if (salud.advertenciaObjetivo) {
+    const entrenador = await db("users").where({ id: sesion.userId }).first();
+    await registrarAuditoria({
+      adminId: sesion.userId,
+      adminNombre: `${entrenador.nombre} ${entrenador.apellido}`,
+      targetType: "evaluacion_riesgo",
+      targetId: clientId,
+      targetNombre: `${cliente.nombre} ${cliente.apellido}`,
+      accion: "advertencia_objetivo_imc",
+      despues: { imcClasificacion: salud.imcClasificacion, goalKey: cliente.goal_key, mensaje: salud.advertenciaObjetivo },
+    });
+  }
+
+  return NextResponse.json({ message: "Evaluación guardada correctamente.", advertenciaObjetivo: salud.advertenciaObjetivo });
 }
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {

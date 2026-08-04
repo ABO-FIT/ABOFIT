@@ -348,6 +348,7 @@ export interface SaludCalculada {
   masaMagraKg: number | null;
   masaGrasaKg: number | null;
   formulaCalorica: "katch_mcardle" | "mifflin_st_jeor" | null;
+  advertenciaObjetivo: string | null;
 }
 
 export interface DetalleClienteRespuesta {
@@ -378,7 +379,7 @@ export interface EvaluacionPayload {
 }
 
 export function guardarEvaluacion(token: string, clientId: number, payload: EvaluacionPayload) {
-  return request<{ message: string }>(`/api/trainer/clients/${clientId}/evaluacion`, "PUT", payload, token);
+  return request<{ message: string; advertenciaObjetivo: string | null }>(`/api/trainer/clients/${clientId}/evaluacion`, "PUT", payload, token);
 }
 
 export interface EvaluacionHistorial {
