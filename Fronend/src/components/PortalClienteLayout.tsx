@@ -12,7 +12,7 @@ const ENLACES: EnlaceNav[] = [
   { to: "/portal/facturas", label: "Mis facturas", icon: "▤" },
   { to: "/portal/pagos", label: "Mis pagos", icon: "▲" },
   { to: "/portal/contacto", label: "Contacto", icon: "✉" },
-  { to: "/perfil", label: "Perfil", icon: "☺" },
+  { to: "/portal/perfil", label: "Perfil", icon: "☺" },
 ];
 
 export default function PortalClienteLayout() {

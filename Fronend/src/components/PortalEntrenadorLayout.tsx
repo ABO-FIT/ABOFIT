@@ -10,7 +10,7 @@ const ENLACES: EnlaceNav[] = [
   { to: "/entrenador/pedidos", label: "Mis pedidos", icon: "▣" },
   { to: "/entrenador/facturas", label: "Mis facturas", icon: "▤" },
   { to: "/entrenador/mensajes", label: "Mensajes", icon: "✉" },
-  { to: "/perfil", label: "Perfil", icon: "☺" },
+  { to: "/entrenador/perfil", label: "Perfil", icon: "☺" },
 ];
 
 export default function PortalEntrenadorLayout() {

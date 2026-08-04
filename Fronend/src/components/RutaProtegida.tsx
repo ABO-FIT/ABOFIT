@@ -10,7 +10,16 @@ export default function RutaProtegida({ children, rol }: { children: ReactNode; 
   }
 
   if (rol && usuario?.rol !== rol) {
-    return <Navigate to="/perfil" replace />;
+    if (usuario?.rol === "Cliente") {
+      return <Navigate to="/portal" replace />;
+    }
+    if (usuario?.rol === "Entrenador") {
+      return <Navigate to="/entrenador" replace />;
+    }
+    if (usuario?.rol === "Administrador") {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;

@@ -44,14 +44,6 @@ export default function App() {
       <Route path="/registro" element={<Registro />} />
       <Route path="/olvide-password" element={<OlvidePassword />} />
       <Route path="/establecer-password" element={<EstablecerPassword />} />
-      <Route
-        path="/perfil"
-        element={
-          <RutaProtegida>
-            <Perfil />
-          </RutaProtegida>
-        }
-      />
 
       <Route
         path="/portal"
@@ -73,6 +65,7 @@ export default function App() {
         <Route path="pedidos" element={<MisPedidos />} />
         <Route path="facturas" element={<MisFacturas />} />
         <Route path="pagos" element={<MisPagos />} />
+        <Route path="perfil" element={<Perfil />} />
       </Route>
 
       <Route
@@ -94,6 +87,7 @@ export default function App() {
         <Route path="carrito" element={<Carrito />} />
         <Route path="pedidos" element={<MisPedidos />} />
         <Route path="facturas" element={<MisFacturas />} />
+        <Route path="perfil" element={<Perfil />} />
       </Route>
 
       <Route
@@ -115,6 +109,7 @@ export default function App() {
         <Route path="reportes" element={<Reportes />} />
         <Route path="auditoria" element={<Auditoria />} />
         <Route path="configuracion" element={<Configuracion />} />
+        <Route path="perfil" element={<Perfil />} />
       </Route>
     </Routes>
   );

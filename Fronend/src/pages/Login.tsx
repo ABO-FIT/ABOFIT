@@ -28,7 +28,7 @@ export default function Login() {
       } else if (respuesta.usuario.rol === "Administrador") {
         navigate("/admin/panel");
       } else {
-        navigate("/perfil");
+        navigate("/login");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");

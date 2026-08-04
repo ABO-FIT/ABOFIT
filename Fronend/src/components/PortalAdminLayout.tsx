@@ -11,7 +11,7 @@ const ENLACES: EnlaceNav[] = [
   { to: "/admin/reportes", label: "Reportes", icon: "▲" },
   { to: "/admin/auditoria", label: "Auditoría", icon: "⚙" },
   { to: "/admin/configuracion", label: "Configuración", icon: "⚙" },
-  { to: "/perfil", label: "Perfil", icon: "☺" },
+  { to: "/admin/perfil", label: "Perfil", icon: "☺" },
 ];
 
 export default function PortalAdminLayout() {
