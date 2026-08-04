@@ -62,10 +62,16 @@ export async function GET(request: Request) {
   const dieta = dietaCustom ?? dietaDefault;
   const comidas = plan?.includes_diet && dieta ? parsearJson(dieta.comidas) : [];
 
+  const fecha = new Date().toISOString().slice(0, 10);
+  const comidasCompletadasHoy = await db("diet_completions")
+    .where({ user_id: sesion.userId, fecha })
+    .pluck("meal");
+
   return NextResponse.json({
     asignado: true,
     diaHoy,
     completadoHoy,
     comidas,
+    comidasCompletadasHoy,
   });
 }

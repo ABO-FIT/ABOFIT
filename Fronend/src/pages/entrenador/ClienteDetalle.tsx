@@ -6,13 +6,16 @@ import {
   guardarEvaluacion,
   obtenerDetalleCliente,
   obtenerHistorialEvaluaciones,
+  obtenerNutricionCliente,
   obtenerObjetivos,
   obtenerPlanes,
+  type AdherenciaDieta,
   type DetalleClienteRespuesta,
   type EvaluacionHistorial,
   type EvaluacionPayload,
   type GoalAdmin,
   type PlanAdmin,
+  type RegistroNutricion,
 } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import RutinaBuilder from "./RutinaBuilder";
@@ -52,6 +55,19 @@ export default function ClienteDetalle() {
   }
 
   useEffect(cargarHistorialEvaluaciones, [token, clientId]);
+
+  const [diarioNutricion, setDiarioNutricion] = useState<RegistroNutricion[]>([]);
+  const [adherenciaPlan, setAdherenciaPlan] = useState<AdherenciaDieta | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    obtenerNutricionCliente(token, clientId)
+      .then(({ diario, adherenciaPlan }) => {
+        setDiarioNutricion(diario);
+        setAdherenciaPlan(adherenciaPlan);
+      })
+      .catch(() => {});
+  }, [token, clientId]);
 
   function cargar() {
     if (!token) return;
@@ -348,6 +364,30 @@ export default function ClienteDetalle() {
               </div>
             ))}
             {progreso.length === 0 && <p style={{ color: "var(--muted)" }}>Sin registros de progreso todavía.</p>}
+          </div>
+
+          {adherenciaPlan && adherenciaPlan.totalEsperadas > 0 && (
+            <>
+              <h3 style={{ marginTop: 24 }}>Adherencia al plan de alimentación (últimos 7 días)</h3>
+              <div className="card">
+                <strong>{adherenciaPlan.porcentaje}%</strong>
+                <p style={{ margin: 0, color: "var(--muted)" }}>
+                  {adherenciaPlan.completadas} de {adherenciaPlan.totalEsperadas} comidas marcadas como consumidas
+                </p>
+              </div>
+            </>
+          )}
+
+          <h3 style={{ marginTop: 24 }}>Diario de comidas del cliente</h3>
+          <div style={{ display: "grid", gap: 8 }}>
+            {diarioNutricion.map((registro) => (
+              <div key={registro.id} className="card">
+                <span className="tag">{registro.tipo}</span>
+                <p style={{ margin: "6px 0 0" }}>{registro.descripcion}</p>
+                <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>{registro.fecha}</p>
+              </div>
+            ))}
+            {diarioNutricion.length === 0 && <p style={{ color: "var(--muted)" }}>El cliente no ha registrado comidas por su cuenta.</p>}
           </div>
         </div>
       )}

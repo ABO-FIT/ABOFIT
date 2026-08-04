@@ -194,10 +194,20 @@ export function registrarProgreso(token: string, datos: FormData) {
 
 export type HoyRespuesta =
   | { asignado: false }
-  | { asignado: true; diaHoy: DiaRutina | null; completadoHoy: boolean; comidas: Comida[] };
+  | {
+      asignado: true;
+      diaHoy: DiaRutina | null;
+      completadoHoy: boolean;
+      comidas: Comida[];
+      comidasCompletadasHoy: string[];
+    };
 
 export function obtenerHoy(token: string) {
   return request<HoyRespuesta>("/api/client/hoy", "GET", undefined, token);
+}
+
+export function marcarComidaPlan(token: string, meal: string) {
+  return request<{ completado: boolean }>("/api/client/nutricion-plan/toggle", "POST", { meal }, token);
 }
 
 export interface Logro {
@@ -402,6 +412,21 @@ export interface EvaluacionHistorial {
 
 export function obtenerHistorialEvaluaciones(token: string, clientId: number) {
   return request<{ historial: EvaluacionHistorial[] }>(`/api/trainer/clients/${clientId}/evaluacion`, "GET", undefined, token);
+}
+
+export interface AdherenciaDieta {
+  totalEsperadas: number;
+  completadas: number;
+  porcentaje: number;
+}
+
+export function obtenerNutricionCliente(token: string, clientId: number) {
+  return request<{ diario: RegistroNutricion[]; adherenciaPlan: AdherenciaDieta }>(
+    `/api/trainer/clients/${clientId}/nutricion`,
+    "GET",
+    undefined,
+    token
+  );
 }
 
 export function cambiarObjetivoCliente(token: string, clientId: number, goalKey: string) {

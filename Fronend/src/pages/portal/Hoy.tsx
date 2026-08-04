@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { marcarDiaRutina, obtenerHoy, obtenerLogros, type HoyRespuesta, type Logro } from "../../api/client";
+import { marcarComidaPlan, marcarDiaRutina, obtenerHoy, obtenerLogros, type HoyRespuesta, type Logro } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Hoy() {
@@ -24,6 +24,12 @@ export default function Hoy() {
   async function toggleHoy(diaId: string) {
     if (!token) return;
     await marcarDiaRutina(token, diaId);
+    cargar();
+  }
+
+  async function toggleComida(meal: string) {
+    if (!token) return;
+    await marcarComidaPlan(token, meal);
     cargar();
   }
 
@@ -53,7 +59,7 @@ export default function Hoy() {
     );
   }
 
-  const { diaHoy, completadoHoy, comidas } = datos;
+  const { diaHoy, completadoHoy, comidas, comidasCompletadasHoy } = datos;
 
   return (
     <main className="wide">
@@ -83,12 +89,26 @@ export default function Hoy() {
         <h2 style={{ margin: "0 0 8px" }}>Tu alimentación</h2>
         {comidas.length > 0 ? (
           <div style={{ display: "grid", gap: 8 }}>
-            {comidas.map((comida) => (
-              <div key={comida.meal}>
-                <strong>{comida.meal}</strong>
-                <p style={{ margin: 0, color: "var(--muted)" }}>{comida.items}</p>
-              </div>
-            ))}
+            {comidas.map((comida) => {
+              const consumida = comidasCompletadasHoy.includes(comida.meal);
+              return (
+                <label
+                  key={comida.meal}
+                  style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer", margin: 0 }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={consumida}
+                    onChange={() => toggleComida(comida.meal)}
+                    style={{ marginTop: 4 }}
+                  />
+                  <div>
+                    <strong style={{ textDecoration: consumida ? "line-through" : "none" }}>{comida.meal}</strong>
+                    <p style={{ margin: 0, color: "var(--muted)" }}>{comida.items}</p>
+                  </div>
+                </label>
+              );
+            })}
           </div>
         ) : (
           <p style={{ color: "var(--muted)" }}>Tu plan actual no incluye un plan de alimentación asignado.</p>
