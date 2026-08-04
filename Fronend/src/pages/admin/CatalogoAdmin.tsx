@@ -141,7 +141,16 @@ export default function CatalogoAdmin() {
       {error && <p role="alert">{error}</p>}
 
       {mostrarForm && (
-        <div className="card" style={{ marginBottom: 24 }}>
+        <div className="modal-overlay" onClick={() => { setMostrarForm(false); setEditandoId(null); setForm(VACIO); }}>
+        <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            className="modal-close"
+            aria-label="Cerrar"
+            onClick={() => { setMostrarForm(false); setEditandoId(null); setForm(VACIO); }}
+          >
+            ×
+          </button>
           <h3>{editandoId ? "Editar producto" : "Nuevo producto"}</h3>
           <form onSubmit={handleSubmit}>
             <label>Imagen</label>
@@ -192,6 +201,7 @@ export default function CatalogoAdmin() {
               </button>
             </div>
           </form>
+        </div>
         </div>
       )}
 
