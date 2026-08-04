@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { obtenerFacturas, type Factura } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
+import FacturaModal from "../../components/FacturaModal";
 
 export default function MisFacturas() {
   const { token } = useAuth();
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [facturaAbierta, setFacturaAbierta] = useState<number | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -35,7 +37,13 @@ export default function MisFacturas() {
 
       <div style={{ display: "grid", gap: 12 }}>
         {facturas.map((factura) => (
-          <div key={factura.id} className="card" style={{ display: "flex", justifyContent: "space-between" }}>
+          <button
+            key={factura.id}
+            type="button"
+            className="card"
+            style={{ display: "flex", justifyContent: "space-between", textAlign: "left", width: "100%" }}
+            onClick={() => setFacturaAbierta(factura.id)}
+          >
             <div>
               <strong>Factura {factura.numero}</strong>
               <p style={{ margin: 0, color: "var(--muted)" }}>{new Date(factura.fecha).toLocaleDateString("es-DO")} · Pedido #{factura.order_id}</p>
@@ -52,9 +60,11 @@ export default function MisFacturas() {
                 {factura.estado === "pagada" ? "Pagada" : "Pendiente"}
               </span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
+
+      {facturaAbierta && <FacturaModal facturaId={facturaAbierta} onClose={() => setFacturaAbierta(null)} />}
     </main>
   );
 }

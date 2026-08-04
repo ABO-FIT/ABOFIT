@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { cambiarEstadoFactura, obtenerFacturasAdmin, type FacturaAdmin } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
+import FacturaModal from "../../components/FacturaModal";
 
 export default function Facturas() {
   const { token } = useAuth();
   const [facturas, setFacturas] = useState<FacturaAdmin[]>([]);
   const [filtro, setFiltro] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [facturaAbierta, setFacturaAbierta] = useState<number | null>(null);
 
   function cargar() {
     if (!token) return;
@@ -39,13 +41,13 @@ export default function Facturas() {
       <div style={{ display: "grid", gap: 12 }}>
         {facturas.map((factura) => (
           <div key={factura.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-            <div>
-              <strong>Factura {factura.numero}</strong>
-              <p style={{ margin: 0, color: "var(--muted)" }}>
+            <button type="button" className="secondary" style={{ textAlign: "left" }} onClick={() => setFacturaAbierta(factura.id)}>
+              <strong style={{ display: "block" }}>Factura {factura.numero}</strong>
+              <span style={{ display: "block", color: "var(--muted)", fontSize: 13 }}>
                 {factura.cliente.nombre} {factura.cliente.apellido} · {factura.cliente.correo} · Pedido #{factura.orderId}
-              </p>
-              <p style={{ margin: 0, color: "var(--muted)" }}>{new Date(factura.fecha).toLocaleDateString("es-DO")}</p>
-            </div>
+              </span>
+              <span style={{ display: "block", color: "var(--muted)", fontSize: 13 }}>{new Date(factura.fecha).toLocaleDateString("es-DO")}</span>
+            </button>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <strong>{money(factura.monto)}</strong>
               <select value={factura.estado} onChange={(e) => marcarPagada(factura.id, e.target.value as "pendiente" | "pagada")}>
@@ -57,6 +59,8 @@ export default function Facturas() {
         ))}
         {facturas.length === 0 && <p style={{ color: "var(--muted)" }}>Sin facturas.</p>}
       </div>
+
+      {facturaAbierta && <FacturaModal facturaId={facturaAbierta} esAdmin onClose={() => setFacturaAbierta(null)} />}
     </main>
   );
 }

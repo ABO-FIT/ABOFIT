@@ -1,0 +1,103 @@
+import { useEffect, useState, type FormEvent } from "react";
+import { cambiarEstadoPago, obtenerPagosCliente, registrarPago, type Pago } from "../../api/client";
+import { useAuth } from "../../context/AuthContext";
+import { money } from "../../lib/money";
+
+const VACIO = { monto: "", concepto: "", fecha: new Date().toISOString().slice(0, 10), estado: "pendiente" as "pagado" | "pendiente" };
+
+export default function PagosTab({ clientId }: { clientId: number }) {
+  const { token } = useAuth();
+  const [pagos, setPagos] = useState<Pago[]>([]);
+  const [form, setForm] = useState(VACIO);
+  const [error, setError] = useState<string | null>(null);
+  const [mensaje, setMensaje] = useState<string | null>(null);
+  const [guardando, setGuardando] = useState(false);
+
+  function cargar() {
+    if (!token) return;
+    obtenerPagosCliente(token, clientId)
+      .then(({ pagos }) => setPagos(pagos))
+      .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar los pagos."));
+  }
+
+  useEffect(cargar, [token, clientId]);
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!token) return;
+    setError(null);
+    setMensaje(null);
+    setGuardando(true);
+
+    try {
+      const respuesta = await registrarPago(token, clientId, { ...form, monto: Number(form.monto) });
+      setMensaje(respuesta.message);
+      setForm(VACIO);
+      cargar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function toggleEstado(pago: Pago) {
+    if (!token) return;
+    const nuevoEstado = pago.estado === "pagado" ? "pendiente" : "pagado";
+    await cambiarEstadoPago(token, clientId, pago.id, nuevoEstado);
+    cargar();
+  }
+
+  return (
+    <div className="card">
+      <h2>Pagos de mensualidad</h2>
+
+      <form onSubmit={handleSubmit}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 8, alignItems: "end" }}>
+          <div>
+            <label>Concepto</label>
+            <input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} placeholder="Mensualidad agosto" required />
+          </div>
+          <div>
+            <label>Monto (RD$)</label>
+            <input type="number" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required />
+          </div>
+          <div>
+            <label>Fecha</label>
+            <input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} required />
+          </div>
+          <div>
+            <label>Estado</label>
+            <select value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value as "pagado" | "pendiente" })}>
+              <option value="pendiente">Pendiente</option>
+              <option value="pagado">Pagado</option>
+            </select>
+          </div>
+          <button type="submit" disabled={guardando}>{guardando ? "Guardando..." : "Registrar"}</button>
+        </div>
+      </form>
+
+      {mensaje && <p role="status" style={{ marginTop: 8 }}>{mensaje}</p>}
+      {error && <p role="alert" style={{ marginTop: 8 }}>{error}</p>}
+
+      <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
+        {pagos.map((pago) => (
+          <div key={pago.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+            <div>
+              <strong>{pago.concepto}</strong>
+              <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>{new Date(pago.fecha).toLocaleDateString("es-DO")} · {money(pago.monto)}</p>
+            </div>
+            <button
+              type="button"
+              className={pago.estado === "pagado" ? "" : "secondary"}
+              onClick={() => toggleEstado(pago)}
+            >
+              {pago.estado === "pagado" ? "Pagado ✓" : "Marcar pagado"}
+            </button>
+          </div>
+        ))}
+        {pagos.length === 0 && <p style={{ color: "var(--muted)" }}>Sin pagos registrados.</p>}
+      </div>
+    </div>
+  );
+}

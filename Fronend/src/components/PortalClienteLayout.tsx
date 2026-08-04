@@ -8,6 +8,7 @@ const ENLACES: EnlaceNav[] = [
   { to: "/portal/carrito", label: "Carrito", icon: "▣" },
   { to: "/portal/pedidos", label: "Mis pedidos", icon: "▣" },
   { to: "/portal/facturas", label: "Mis facturas", icon: "▤" },
+  { to: "/portal/pagos", label: "Mis pagos", icon: "▲" },
   { to: "/portal/contacto", label: "Contacto", icon: "✉" },
   { to: "/perfil", label: "Perfil", icon: "☺" },
 ];

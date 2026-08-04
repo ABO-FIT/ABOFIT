@@ -704,3 +704,128 @@ export function marcarNotificacionLeida(token: string, id: number) {
 export function marcarTodasLeidas(token: string) {
   return request<{ message: string }>("/api/notifications/marcar-todas", "PUT", undefined, token);
 }
+
+// ---- Configuración en caliente ----
+
+export interface GoalAdmin {
+  key: string;
+  label: string;
+  short_label: string;
+  color: string;
+}
+
+export function obtenerObjetivos(token?: string | null) {
+  return request<{ goals: GoalAdmin[] }>("/api/goals", "GET", undefined, token);
+}
+
+export function obtenerObjetivosAdmin(token: string) {
+  return request<{ goals: GoalAdmin[] }>("/api/admin/config/goals", "GET", undefined, token);
+}
+
+export function crearObjetivo(token: string, payload: { key: string; label: string; shortLabel: string; color: string }) {
+  return request<{ message: string }>("/api/admin/config/goals", "POST", payload, token);
+}
+
+export function editarObjetivo(token: string, key: string, payload: { label: string; shortLabel: string; color: string }) {
+  return request<{ message: string }>(`/api/admin/config/goals/${key}`, "PUT", payload, token);
+}
+
+export function eliminarObjetivo(token: string, key: string) {
+  return request<{ message: string }>(`/api/admin/config/goals/${key}`, "DELETE", undefined, token);
+}
+
+export interface CategoriaAdmin {
+  id: number;
+  name: string;
+}
+
+export function obtenerCategorias() {
+  return request<{ categorias: CategoriaAdmin[] }>("/api/categories", "GET");
+}
+
+export function obtenerCategoriasAdmin(token: string) {
+  return request<{ categorias: CategoriaAdmin[] }>("/api/admin/config/categories", "GET", undefined, token);
+}
+
+export function crearCategoria(token: string, name: string) {
+  return request<{ id: number; message: string }>("/api/admin/config/categories", "POST", { name }, token);
+}
+
+export function editarCategoria(token: string, id: number, name: string) {
+  return request<{ message: string }>(`/api/admin/config/categories/${id}`, "PUT", { name }, token);
+}
+
+export function eliminarCategoria(token: string, id: number) {
+  return request<{ message: string }>(`/api/admin/config/categories/${id}`, "DELETE", undefined, token);
+}
+
+export interface PlantillaFactura {
+  id: number;
+  company_name: string;
+  tagline: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  bank_name: string | null;
+  bank_account: string | null;
+  bank_holder: string | null;
+  tax_id: string | null;
+}
+
+export function obtenerPlantillaFactura(token: string) {
+  return request<{ plantilla: PlantillaFactura }>("/api/admin/config/invoice-template", "GET", undefined, token);
+}
+
+export function actualizarPlantillaFactura(token: string, payload: {
+  companyName: string; tagline: string; email: string; phone: string; address: string;
+  bankName: string; bankAccount: string; bankHolder: string; taxId: string;
+}) {
+  return request<{ message: string }>("/api/admin/config/invoice-template", "PUT", payload, token);
+}
+
+// ---- Detalle de factura ----
+
+export interface DetalleFactura {
+  factura: { id: number; numero: string; monto: number; estado: "pendiente" | "pagada"; fecha: string; orderId: number; userId: number };
+  cliente: { nombre: string; apellido: string; correo: string; telefono: string };
+  items: { name: string; price: number; qty: number }[];
+  pedidoEstado: string | null;
+  plantilla: {
+    companyName: string; tagline: string | null; email: string | null; phone: string | null; address: string | null;
+    bankName: string | null; bankAccount: string | null; bankHolder: string | null; taxId: string | null;
+  } | null;
+}
+
+export function obtenerDetalleFactura(token: string, id: number) {
+  return request<DetalleFactura>(`/api/invoices/${id}`, "GET", undefined, token);
+}
+
+export function obtenerDetalleFacturaAdmin(token: string, id: number) {
+  return request<DetalleFactura>(`/api/admin/invoices/${id}`, "GET", undefined, token);
+}
+
+// ---- Pagos de mensualidad ----
+
+export interface Pago {
+  id: number;
+  monto: number;
+  concepto: string;
+  fecha: string;
+  estado: "pagado" | "pendiente";
+}
+
+export function obtenerPagosCliente(token: string, clientId: number) {
+  return request<{ pagos: Pago[] }>(`/api/trainer/clients/${clientId}/pagos`, "GET", undefined, token);
+}
+
+export function registrarPago(token: string, clientId: number, payload: { monto: number; concepto: string; fecha: string; estado: "pagado" | "pendiente" }) {
+  return request<{ id: number; message: string }>(`/api/trainer/clients/${clientId}/pagos`, "POST", payload, token);
+}
+
+export function cambiarEstadoPago(token: string, clientId: number, pagoId: number, estado: "pagado" | "pendiente") {
+  return request<{ message: string }>(`/api/trainer/clients/${clientId}/pagos/${pagoId}/estado`, "PUT", { estado }, token);
+}
+
+export function obtenerMisPagos(token: string) {
+  return request<{ pagos: Pago[] }>("/api/client/pagos", "GET", undefined, token);
+}

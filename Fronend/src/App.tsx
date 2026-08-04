@@ -16,6 +16,7 @@ import Catalogo from "./pages/shop/Catalogo";
 import Carrito from "./pages/shop/Carrito";
 import MisPedidos from "./pages/shop/MisPedidos";
 import MisFacturas from "./pages/shop/MisFacturas";
+import MisPagos from "./pages/portal/MisPagos";
 import PanelAdmin from "./pages/admin/Panel";
 import Usuarios from "./pages/admin/Usuarios";
 import Gimnasios from "./pages/admin/Gimnasios";
@@ -25,6 +26,7 @@ import Pedidos from "./pages/admin/Pedidos";
 import Facturas from "./pages/admin/Facturas";
 import Reportes from "./pages/admin/Reportes";
 import Auditoria from "./pages/admin/Auditoria";
+import Configuracion from "./pages/admin/Configuracion";
 import RutaProtegida from "./components/RutaProtegida";
 import PortalClienteLayout from "./components/PortalClienteLayout";
 import PortalEntrenadorLayout from "./components/PortalEntrenadorLayout";
@@ -64,6 +66,7 @@ export default function App() {
         <Route path="carrito" element={<Carrito />} />
         <Route path="pedidos" element={<MisPedidos />} />
         <Route path="facturas" element={<MisFacturas />} />
+        <Route path="pagos" element={<MisPagos />} />
       </Route>
 
       <Route
@@ -103,6 +106,7 @@ export default function App() {
         <Route path="facturas" element={<Facturas />} />
         <Route path="reportes" element={<Reportes />} />
         <Route path="auditoria" element={<Auditoria />} />
+        <Route path="configuracion" element={<Configuracion />} />
       </Route>
     </Routes>
   );

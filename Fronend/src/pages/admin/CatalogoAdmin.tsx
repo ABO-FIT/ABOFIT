@@ -1,17 +1,20 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { crearProducto, editarProducto, eliminarProducto, obtenerProductosAdmin, type ProductoAdmin, type ProductoFormPayload } from "../../api/client";
+import {
+  crearProducto,
+  editarProducto,
+  eliminarProducto,
+  obtenerCategorias,
+  obtenerObjetivos,
+  obtenerProductosAdmin,
+  type CategoriaAdmin,
+  type GoalAdmin,
+  type ProductoAdmin,
+  type ProductoFormPayload,
+} from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
-
-const OBJETIVOS = [
-  { key: "", label: "Todos los objetivos" },
-  { key: "masa", label: "Masa muscular" },
-  { key: "grasa", label: "Pérdida de grasa" },
-  { key: "mantenimiento", label: "Mantenimiento" },
-  { key: "rendimiento", label: "Rendimiento" },
-];
 
 const VACIO: ProductoFormPayload = {
   cat: "", name: "", price: 0, stock: 0, goals: [],
@@ -22,6 +25,8 @@ export default function CatalogoAdmin() {
   const { token } = useAuth();
   const [productos, setProductos] = useState<ProductoAdmin[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
+  const [categoriasDisponibles, setCategoriasDisponibles] = useState<CategoriaAdmin[]>([]);
+  const [objetivos, setObjetivos] = useState<GoalAdmin[]>([]);
   const [goalFiltro, setGoalFiltro] = useState("");
   const [catFiltro, setCatFiltro] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +46,10 @@ export default function CatalogoAdmin() {
   }
 
   useEffect(cargar, [token]);
+  useEffect(() => {
+    obtenerObjetivos(token).then(({ goals }) => setObjetivos(goals)).catch(() => {});
+    obtenerCategorias().then(({ categorias }) => setCategoriasDisponibles(categorias)).catch(() => {});
+  }, [token]);
 
   function toggleObjetivo(key: string) {
     setForm((f) => ({
@@ -111,7 +120,10 @@ export default function CatalogoAdmin() {
 
       <span className="section-label">Filtra por objetivo</span>
       <div className="pill-group" style={{ marginBottom: 16 }}>
-        {OBJETIVOS.map((o) => (
+        <button type="button" className={`pill ${goalFiltro === "" ? "active" : ""}`} onClick={() => setGoalFiltro("")}>
+          Todos los objetivos
+        </button>
+        {objetivos.map((o) => (
           <button key={o.key} type="button" className={`pill ${goalFiltro === o.key ? "active" : ""}`} onClick={() => setGoalFiltro(o.key)}>
             {o.label}
           </button>
@@ -136,7 +148,12 @@ export default function CatalogoAdmin() {
             <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setForm({ ...form, imagen: e.target.files?.[0] ?? null })} />
 
             <label>Categoría</label>
-            <input value={form.cat} onChange={(e) => setForm({ ...form, cat: e.target.value })} required />
+            <select value={form.cat} onChange={(e) => setForm({ ...form, cat: e.target.value })} required>
+              <option value="" disabled>Elegir categoría</option>
+              {categoriasDisponibles.map((c) => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
+            </select>
             <label>Nombre</label>
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
             <label>Precio (RD$)</label>
@@ -146,7 +163,7 @@ export default function CatalogoAdmin() {
 
             <label>Objetivos</label>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {OBJETIVOS.filter((o) => o.key).map((o) => (
+              {objetivos.map((o) => (
                 <button key={o.key} type="button" className={form.goals.includes(o.key) ? "" : "secondary"} onClick={() => toggleObjetivo(o.key)}>
                   {o.label}
                 </button>

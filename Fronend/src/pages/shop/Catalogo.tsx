@@ -1,23 +1,16 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { agregarAlCarrito, obtenerCatalogo, type Producto } from "../../api/client";
+import { agregarAlCarrito, obtenerCatalogo, obtenerObjetivos, type GoalAdmin, type Producto } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
 import ProductModal from "../../components/ProductModal";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
-const OBJETIVOS = [
-  { key: "", label: "Todos los objetivos" },
-  { key: "masa", label: "Masa muscular" },
-  { key: "grasa", label: "Pérdida de grasa" },
-  { key: "mantenimiento", label: "Mantenimiento" },
-  { key: "rendimiento", label: "Rendimiento" },
-];
-
 export default function Catalogo() {
   const { token } = useAuth();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
+  const [objetivos, setObjetivos] = useState<GoalAdmin[]>([]);
   const [goal, setGoal] = useState("");
   const [cat, setCat] = useState("");
   const [buscar, setBuscar] = useState("");
@@ -35,6 +28,9 @@ export default function Catalogo() {
   }
 
   useEffect(cargar, [token, goal, cat]);
+  useEffect(() => {
+    obtenerObjetivos(token).then(({ goals }) => setObjetivos(goals)).catch(() => {});
+  }, [token]);
 
   function handleBuscarSubmit(event: FormEvent) {
     event.preventDefault();
@@ -65,7 +61,10 @@ export default function Catalogo() {
 
       <span className="section-label">Filtra por objetivo</span>
       <div className="pill-group" style={{ marginBottom: 16 }}>
-        {OBJETIVOS.map((o) => (
+        <button type="button" className={`pill ${goal === "" ? "active" : ""}`} onClick={() => setGoal("")}>
+          Todos los objetivos
+        </button>
+        {objetivos.map((o) => (
           <button
             key={o.key}
             type="button"

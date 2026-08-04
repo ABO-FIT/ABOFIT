@@ -5,18 +5,13 @@ import {
   buscarCliente,
   crearClienteDirecto,
   obtenerMisClientes,
+  obtenerObjetivos,
   type ClienteBuscado,
   type ClienteResumen,
+  type GoalAdmin,
   type NuevoClientePayload,
 } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
-
-const OBJETIVOS = [
-  { key: "masa", label: "Masa muscular" },
-  { key: "grasa", label: "Pérdida de grasa" },
-  { key: "mantenimiento", label: "Mantenimiento" },
-  { key: "rendimiento", label: "Rendimiento" },
-];
 
 const NUEVO_CLIENTE_INICIAL: NuevoClientePayload = {
   nombre: "",
@@ -25,19 +20,20 @@ const NUEVO_CLIENTE_INICIAL: NuevoClientePayload = {
   usuario: "",
   telefono: "",
   planKey: "A",
-  goalKey: "masa",
+  goalKey: "",
 };
 
 export default function MisClientes() {
   const { token } = useAuth();
   const [clientes, setClientes] = useState<ClienteResumen[]>([]);
+  const [objetivos, setObjetivos] = useState<GoalAdmin[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const [mostrarBuscar, setMostrarBuscar] = useState(false);
   const [usuarioBuscado, setUsuarioBuscado] = useState("");
   const [encontrado, setEncontrado] = useState<ClienteBuscado | null>(null);
   const [planAsignar, setPlanAsignar] = useState("A");
-  const [goalAsignar, setGoalAsignar] = useState("masa");
+  const [goalAsignar, setGoalAsignar] = useState("");
   const [errorBuscar, setErrorBuscar] = useState<string | null>(null);
 
   const [mostrarNuevo, setMostrarNuevo] = useState(false);
@@ -54,6 +50,15 @@ export default function MisClientes() {
   }
 
   useEffect(cargar, [token]);
+  useEffect(() => {
+    obtenerObjetivos(token).then(({ goals }) => {
+      setObjetivos(goals);
+      if (goals.length > 0) {
+        setGoalAsignar((actual) => actual || goals[0].key);
+        setNuevoCliente((n) => ({ ...n, goalKey: n.goalKey || goals[0].key }));
+      }
+    }).catch(() => {});
+  }, [token]);
 
   async function handleBuscar(event: FormEvent) {
     event.preventDefault();
@@ -144,7 +149,7 @@ export default function MisClientes() {
 
               <label htmlFor="goalAsignar">Objetivo</label>
               <select id="goalAsignar" value={goalAsignar} onChange={(e) => setGoalAsignar(e.target.value)}>
-                {OBJETIVOS.map((o) => (
+                {objetivos.map((o) => (
                   <option key={o.key} value={o.key}>{o.label}</option>
                 ))}
               </select>
@@ -184,7 +189,7 @@ export default function MisClientes() {
 
             <label htmlFor="goalNuevo">Objetivo</label>
             <select id="goalNuevo" value={nuevoCliente.goalKey} onChange={(e) => setNuevoCliente({ ...nuevoCliente, goalKey: e.target.value })}>
-              {OBJETIVOS.map((o) => (
+              {objetivos.map((o) => (
                 <option key={o.key} value={o.key}>{o.label}</option>
               ))}
             </select>

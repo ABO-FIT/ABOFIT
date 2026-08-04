@@ -5,19 +5,15 @@ import {
   cambiarPlanCliente,
   guardarEvaluacion,
   obtenerDetalleCliente,
+  obtenerObjetivos,
   type DetalleClienteRespuesta,
   type EvaluacionPayload,
+  type GoalAdmin,
 } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import RutinaBuilder from "./RutinaBuilder";
 import DietaBuilder from "./DietaBuilder";
-
-const OBJETIVOS = [
-  { key: "masa", label: "Masa muscular" },
-  { key: "grasa", label: "Pérdida de grasa" },
-  { key: "mantenimiento", label: "Mantenimiento" },
-  { key: "rendimiento", label: "Rendimiento" },
-];
+import PagosTab from "./PagosTab";
 
 const NIVELES_ACTIVIDAD = [
   { key: "sedentario", label: "Sedentario" },
@@ -27,7 +23,7 @@ const NIVELES_ACTIVIDAD = [
   { key: "muy_activo", label: "Muy activo" },
 ];
 
-const TABS = ["evaluacion", "rutina", "nutricion", "seguimiento"] as const;
+const TABS = ["evaluacion", "rutina", "nutricion", "seguimiento", "pagos"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function ClienteDetalle() {
@@ -38,6 +34,7 @@ export default function ClienteDetalle() {
   const [tab, setTab] = useState<Tab>("evaluacion");
   const [datos, setDatos] = useState<DetalleClienteRespuesta | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [objetivos, setObjetivos] = useState<GoalAdmin[]>([]);
 
   const [evaluacion, setEvaluacion] = useState<EvaluacionPayload>({});
   const [mensajeEval, setMensajeEval] = useState<string | null>(null);
@@ -66,6 +63,9 @@ export default function ClienteDetalle() {
   }
 
   useEffect(cargar, [token, clientId]);
+  useEffect(() => {
+    obtenerObjetivos(token).then(({ goals }) => setObjetivos(goals)).catch(() => {});
+  }, [token]);
 
   async function handleGuardarEvaluacion() {
     if (!token) return;
@@ -130,7 +130,7 @@ export default function ClienteDetalle() {
           <label>Objetivo</label>
           <select value={cliente.goalKey ?? ""} onChange={(e) => handleCambiarObjetivo(e.target.value)}>
             <option value="" disabled>Elegir objetivo</option>
-            {OBJETIVOS.map((o) => (
+            {objetivos.map((o) => (
               <option key={o.key} value={o.key}>{o.label}</option>
             ))}
           </select>
@@ -150,6 +150,7 @@ export default function ClienteDetalle() {
             {t === "rutina" && "Rutina"}
             {t === "nutricion" && "Nutrición"}
             {t === "seguimiento" && "Seguimiento"}
+            {t === "pagos" && "Pagos"}
           </button>
         ))}
       </div>
@@ -257,6 +258,7 @@ export default function ClienteDetalle() {
 
       {tab === "rutina" && <RutinaBuilder clientId={clientId} />}
       {tab === "nutricion" && <DietaBuilder clientId={clientId} />}
+      {tab === "pagos" && <PagosTab clientId={clientId} />}
 
       {tab === "seguimiento" && (
         <div className="card">
