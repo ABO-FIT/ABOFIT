@@ -5,6 +5,7 @@ import sharp from "sharp";
 
 const TIPOS_PERMITIDOS = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_BYTES = 3 * 1024 * 1024;
+const MAX_ENTRADA_BYTES = 15 * 1024 * 1024;
 
 export function esImagenValida(tipo: string): boolean {
   return TIPOS_PERMITIDOS.has(tipo);
@@ -47,7 +48,18 @@ export async function guardarImagen(archivo: File, carpeta: string, prefijo: str
     throw new Error("Solo se permiten imágenes JPG, PNG o WEBP.");
   }
 
+  if (archivo.size > MAX_ENTRADA_BYTES) {
+    throw new Error("La imagen es demasiado grande (máximo 15 MB).");
+  }
+
   const entrada = Buffer.from(await archivo.arrayBuffer());
+
+  try {
+    await sharp(entrada).metadata();
+  } catch {
+    throw new Error("El archivo no es una imagen válida.");
+  }
+
   const { buffer, extension } = await comprimirImagen(entrada, archivo.type);
 
   const directorio = path.join(process.cwd(), "public", "uploads", carpeta);

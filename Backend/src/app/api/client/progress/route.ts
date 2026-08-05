@@ -1,15 +1,7 @@
-import { randomUUID } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
-
-const EXTENSIONES_PERMITIDAS: Record<string, string> = {
-  "image/jpeg": ".jpg",
-  "image/png": ".png",
-  "image/webp": ".webp",
-};
+import { guardarImagen } from "@/lib/upload";
 
 interface EntradaProgreso {
   fecha: string;
@@ -84,19 +76,11 @@ export async function POST(request: Request) {
   let fotoPath: string | null = null;
 
   if (foto instanceof File && foto.size > 0) {
-    const extension = EXTENSIONES_PERMITIDAS[foto.type];
-    if (!extension) {
-      return NextResponse.json({ error: "La foto debe ser JPG, PNG o WEBP." }, { status: 400 });
+    try {
+      fotoPath = await guardarImagen(foto, "progress", `${sesion.userId}`);
+    } catch (err) {
+      return NextResponse.json({ error: err instanceof Error ? err.message : "No se pudo procesar la foto." }, { status: 400 });
     }
-
-    const directorio = path.join(process.cwd(), "public", "uploads", "progress");
-    await mkdir(directorio, { recursive: true });
-
-    const nombreArchivo = `${sesion.userId}-${randomUUID()}${extension}`;
-    const bytes = Buffer.from(await foto.arrayBuffer());
-    await writeFile(path.join(directorio, nombreArchivo), bytes);
-
-    fotoPath = `/uploads/progress/${nombreArchivo}`;
   }
 
   const [id] = await db("progress_entries").insert({
