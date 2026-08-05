@@ -4,21 +4,28 @@ import { obtenerSesion } from "@/lib/auth";
 import { eliminarImagen, guardarImagen } from "@/lib/upload";
 import { crearNotificacion } from "@/lib/notificaciones";
 
+const ROLES_COMPRA = ["Cliente", "Entrenador"];
+
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   const sesion = obtenerSesion(request);
-  if (!sesion) {
-    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
+  if (!sesion || !ROLES_COMPRA.includes(sesion.rol)) {
+    return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
-  const facturaId = Number(params.id);
-  const factura = await db("invoices").where({ id: facturaId }).first();
+  const orderId = Number(params.id);
+  const pedido = await db("orders").where({ id: orderId }).first();
 
-  if (!factura || factura.user_id !== sesion.userId) {
-    return NextResponse.json({ error: "Factura no encontrada." }, { status: 404 });
+  if (!pedido || pedido.user_id !== sesion.userId) {
+    return NextResponse.json({ error: "Pedido no encontrado." }, { status: 404 });
   }
 
-  if (factura.estado === "pagada") {
-    return NextResponse.json({ error: "Esta factura ya fue confirmada como pagada." }, { status: 400 });
+  if (pedido.estado === "cancelado") {
+    return NextResponse.json({ error: "Este pedido fue cancelado." }, { status: 400 });
+  }
+
+  const facturaExistente = await db("invoices").where({ order_id: orderId }).first();
+  if (facturaExistente) {
+    return NextResponse.json({ error: "Este pedido ya fue confirmado como pagado." }, { status: 400 });
   }
 
   const formData = await request.formData().catch(() => null);
@@ -30,16 +37,16 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
   let ruta: string;
   try {
-    ruta = await guardarImagen(archivo, "comprobantes", `factura-${facturaId}`);
+    ruta = await guardarImagen(archivo, "comprobantes", `pedido-${orderId}`);
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "No se pudo procesar la imagen." }, { status: 400 });
   }
 
-  if (factura.comprobante_path) {
-    await eliminarImagen(factura.comprobante_path);
+  if (pedido.comprobante_path) {
+    await eliminarImagen(pedido.comprobante_path);
   }
 
-  await db("invoices").where({ id: facturaId }).update({ comprobante_path: ruta });
+  await db("orders").where({ id: orderId }).update({ comprobante_path: ruta });
 
   const cliente = await db("users").where({ id: sesion.userId }).first();
   const administradores = await db("users")
@@ -51,10 +58,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
     administradores.map((admin) =>
       crearNotificacion({
         userId: admin.id,
-        tipo: "factura",
-        titulo: `Comprobante subido: Factura ${factura.numero}`,
+        tipo: "pedido",
+        titulo: `Comprobante subido: Pedido #${orderId}`,
         subtitulo: `${cliente.nombre} ${cliente.apellido} envió un comprobante de pago.`,
-        link: "/admin/facturas",
+        link: "/admin/pedidos",
       })
     )
   );

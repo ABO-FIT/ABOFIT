@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { cambiarEstadoPedido, obtenerPedidosAdmin, type PedidoAdmin } from "../../api/client";
+import { cambiarEstadoPedido, confirmarPagoPedido, obtenerPedidosAdmin, type PedidoAdmin } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 const ESTADOS: PedidoAdmin["estado"][] = ["pendiente", "recibido", "entregado", "cancelado"];
 const ETIQUETAS: Record<PedidoAdmin["estado"], string> = {
@@ -14,6 +16,7 @@ export default function Pedidos() {
   const [filtro, setFiltro] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
+  const [confirmando, setConfirmando] = useState<number | null>(null);
 
   function cargar() {
     if (!token) return;
@@ -34,6 +37,22 @@ export default function Pedidos() {
       cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    }
+  }
+
+  async function confirmarPago(id: number) {
+    if (!token) return;
+    setMensaje(null);
+    setError(null);
+    setConfirmando(id);
+    try {
+      const respuesta = await confirmarPagoPedido(token, id);
+      setMensaje(respuesta.message);
+      cargar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    } finally {
+      setConfirmando(null);
     }
   }
 
@@ -70,6 +89,30 @@ export default function Pedidos() {
               ))}
             </ul>
             <strong>Total: {money(pedido.total)}</strong>
+
+            <div style={{ marginTop: 12, borderTop: "1px solid var(--line)", paddingTop: 12 }}>
+              {pedido.facturaId ? (
+                <span className="tag" style={{ background: "var(--oks)", color: "var(--ok)" }}>
+                  Pagado · Factura {pedido.facturaNumero}
+                </span>
+              ) : pedido.comprobantePath ? (
+                <div>
+                  <p style={{ margin: "0 0 8px", fontWeight: 600, fontSize: 14 }}>Comprobante enviado por el cliente</p>
+                  <a href={`${API_URL}${pedido.comprobantePath}`} target="_blank" rel="noreferrer">
+                    <img
+                      src={`${API_URL}${pedido.comprobantePath}`}
+                      alt="Comprobante de pago"
+                      style={{ width: "100%", maxWidth: 260, borderRadius: 8, display: "block", marginBottom: 10 }}
+                    />
+                  </a>
+                  <button type="button" disabled={confirmando === pedido.id} onClick={() => confirmarPago(pedido.id)}>
+                    {confirmando === pedido.id ? "Confirmando..." : "Confirmar pago"}
+                  </button>
+                </div>
+              ) : (
+                <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>El cliente aún no ha subido un comprobante de pago.</p>
+              )}
+            </div>
           </div>
         ))}
         {pedidos.length === 0 && <p style={{ color: "var(--muted)" }}>Sin pedidos.</p>}

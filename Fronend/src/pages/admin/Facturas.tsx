@@ -47,18 +47,6 @@ export default function Facturas() {
                 {factura.cliente.nombre} {factura.cliente.apellido} · {factura.cliente.correo} · Pedido #{factura.orderId}
               </span>
               <span style={{ display: "block", color: "var(--muted)", fontSize: 13 }}>{new Date(factura.fecha).toLocaleDateString("es-DO")}</span>
-              {factura.estado === "pendiente" && (
-                <span
-                  className="tag"
-                  style={{
-                    marginTop: 4,
-                    background: factura.comprobantePath ? "var(--oks)" : "var(--line)",
-                    color: factura.comprobantePath ? "var(--ok)" : "var(--muted)",
-                  }}
-                >
-                  {factura.comprobantePath ? "Comprobante enviado" : "Sin comprobante"}
-                </span>
-              )}
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <strong>{money(factura.monto)}</strong>

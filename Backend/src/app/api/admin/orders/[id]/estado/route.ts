@@ -32,30 +32,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: "Estado inválido." }, { status: 400 });
   }
 
-  let facturaGenerada: { id: number; numero: string } | null = null;
-
   await db.transaction(async (trx) => {
     await trx("orders").where({ id: orderId }).update({ estado });
-
-    if (estado === "recibido" && pedido.estado !== "recibido") {
-      const facturaExistente = await trx("invoices").where({ order_id: orderId }).first();
-
-      if (!facturaExistente) {
-        const [invoiceId] = await trx("invoices").insert({
-          numero: "PENDIENTE",
-          order_id: orderId,
-          user_id: pedido.user_id,
-          monto: pedido.total,
-          estado: "pendiente",
-          fecha: new Date().toISOString().slice(0, 10),
-        });
-
-        const numero = `FAC-${String(invoiceId).padStart(6, "0")}`;
-        await trx("invoices").where({ id: invoiceId }).update({ numero });
-
-        facturaGenerada = { id: invoiceId, numero };
-      }
-    }
 
     if (estado === "cancelado" && pedido.estado !== "cancelado") {
       const items = await trx("order_items").where({ order_id: orderId }).select("product_id", "qty");
@@ -75,10 +53,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     targetId: orderId,
     accion: "cambiar_estado",
     antes: { estado: pedido.estado },
-    despues: { estado, factura: facturaGenerada },
+    despues: { estado },
   });
-
-  const numeroFactura: string | null = facturaGenerada ? (facturaGenerada as { id: number; numero: string }).numero : null;
 
   const comprador = await db("users")
     .join("roles", "roles.id", "users.rol_id")
@@ -94,19 +70,5 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     link: `${base}/pedidos`,
   });
 
-  if (numeroFactura) {
-    await crearNotificacion({
-      userId: pedido.user_id,
-      tipo: "factura",
-      titulo: `Factura ${numeroFactura} generada`,
-      subtitulo: "Ya puedes verla en Mis Facturas.",
-      link: `${base}/facturas`,
-    });
-  }
-
-  return NextResponse.json({
-    message: numeroFactura
-      ? `Pedido actualizado y factura ${numeroFactura} generada.`
-      : "Pedido actualizado correctamente.",
-  });
+  return NextResponse.json({ message: "Pedido actualizado correctamente." });
 }

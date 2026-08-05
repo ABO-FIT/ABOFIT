@@ -637,6 +637,9 @@ export interface Pedido {
   total: number;
   estado: "pendiente" | "recibido" | "entregado" | "cancelado";
   fecha: string;
+  comprobantePath: string | null;
+  facturaId: number | null;
+  facturaNumero: string | null;
   items: PedidoItem[];
 }
 
@@ -648,6 +651,12 @@ export function crearPedido(token: string) {
   return request<{ id: number; message: string }>("/api/orders", "POST", undefined, token);
 }
 
+export function subirComprobantePedido(token: string, orderId: number, archivo: File) {
+  const formData = new FormData();
+  formData.append("comprobante", archivo);
+  return request<{ message: string }>(`/api/orders/${orderId}/comprobante`, "POST", formData, token);
+}
+
 export interface Factura {
   id: number;
   numero: string;
@@ -655,17 +664,10 @@ export interface Factura {
   monto: number;
   estado: "pendiente" | "pagada";
   fecha: string;
-  comprobante_path: string | null;
 }
 
 export function obtenerFacturas(token: string) {
   return request<{ facturas: Factura[] }>("/api/invoices", "GET", undefined, token);
-}
-
-export function subirComprobante(token: string, facturaId: number, archivo: File) {
-  const formData = new FormData();
-  formData.append("comprobante", archivo);
-  return request<{ message: string }>(`/api/invoices/${facturaId}/comprobante`, "POST", formData, token);
 }
 
 // ---- Administración ----
@@ -846,6 +848,9 @@ export interface PedidoAdmin {
   total: number;
   estado: Pedido["estado"];
   fecha: string;
+  comprobantePath: string | null;
+  facturaId: number | null;
+  facturaNumero: string | null;
   cliente: { nombre: string; apellido: string; correo: string; telefono: string };
   items: { name: string; price: number; qty: number }[];
 }
@@ -859,6 +864,10 @@ export function cambiarEstadoPedido(token: string, id: number, estado: PedidoAdm
   return request<{ message: string }>(`/api/admin/orders/${id}/estado`, "PUT", { estado }, token);
 }
 
+export function confirmarPagoPedido(token: string, id: number) {
+  return request<{ message: string; numero: string }>(`/api/admin/orders/${id}/confirmar-pago`, "POST", undefined, token);
+}
+
 export interface FacturaAdmin {
   id: number;
   numero: string;
@@ -866,7 +875,6 @@ export interface FacturaAdmin {
   monto: number;
   estado: "pendiente" | "pagada";
   fecha: string;
-  comprobantePath: string | null;
   cliente: { nombre: string; apellido: string; correo: string };
 }
 
@@ -1021,7 +1029,7 @@ export function actualizarPlantillaFactura(token: string, payload: {
 // ---- Detalle de factura ----
 
 export interface DetalleFactura {
-  factura: { id: number; numero: string; monto: number; estado: "pendiente" | "pagada"; fecha: string; orderId: number; userId: number; comprobantePath: string | null };
+  factura: { id: number; numero: string; monto: number; estado: "pendiente" | "pagada"; fecha: string; orderId: number; userId: number };
   cliente: { nombre: string; apellido: string; correo: string; telefono: string };
   items: { name: string; price: number; qty: number }[];
   pedidoEstado: string | null;

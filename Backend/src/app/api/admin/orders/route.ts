@@ -13,7 +13,10 @@ export async function GET(request: Request) {
 
   let query = db("orders")
     .join("users", "users.id", "orders.user_id")
-    .select("orders.id", "orders.total", "orders.estado", "orders.created_at", "users.nombre", "users.apellido", "users.correo", "users.telefono");
+    .select(
+      "orders.id", "orders.total", "orders.estado", "orders.created_at", "orders.comprobante_path",
+      "users.nombre", "users.apellido", "users.correo", "users.telefono"
+    );
 
   if (estado) {
     query = query.andWhere("orders.estado", estado);
@@ -23,12 +26,18 @@ export async function GET(request: Request) {
 
   const resultado = await Promise.all(
     pedidos.map(async (pedido) => {
-      const items = await db("order_items").where({ order_id: pedido.id }).select("name", "price", "qty");
+      const [items, factura] = await Promise.all([
+        db("order_items").where({ order_id: pedido.id }).select("name", "price", "qty"),
+        db("invoices").where({ order_id: pedido.id }).select("id", "numero").first(),
+      ]);
       return {
         id: pedido.id,
         total: pedido.total,
         estado: pedido.estado,
         fecha: pedido.created_at,
+        comprobantePath: pedido.comprobante_path,
+        facturaId: factura?.id ?? null,
+        facturaNumero: factura?.numero ?? null,
         cliente: { nombre: pedido.nombre, apellido: pedido.apellido, correo: pedido.correo, telefono: pedido.telefono },
         items,
       };

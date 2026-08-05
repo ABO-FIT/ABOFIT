@@ -43,11 +43,16 @@ export async function GET(request: Request) {
         images: imagenes.filter((img) => img.product_id === f.product_id).map((img) => img.path),
       }));
 
+      const factura = await db("invoices").where({ order_id: pedido.id }).select("id", "numero").first();
+
       return {
         id: pedido.id,
         total: pedido.total,
         estado: pedido.estado,
         fecha: pedido.created_at,
+        comprobantePath: pedido.comprobante_path,
+        facturaId: factura?.id ?? null,
+        facturaNumero: factura?.numero ?? null,
         items,
       };
     }),
@@ -81,7 +86,7 @@ export async function POST(request: Request) {
 
   const total = items.reduce((suma, item) => suma + item.price * item.qty, 0);
 
-  const { orderId, numeroFactura } = await db.transaction(async (trx) => {
+  const orderId = await db.transaction(async (trx) => {
     const [id] = await trx("orders").insert({ user_id: sesion.userId, total, estado: "pendiente" });
 
     await trx("order_items").insert(
@@ -100,19 +105,7 @@ export async function POST(request: Request) {
 
     await trx("cart_items").where({ user_id: sesion.userId }).delete();
 
-    const [invoiceId] = await trx("invoices").insert({
-      numero: "PENDIENTE",
-      order_id: id,
-      user_id: sesion.userId,
-      monto: total,
-      estado: "pendiente",
-      fecha: new Date().toISOString().slice(0, 10),
-    });
-
-    const numero = `FAC-${String(invoiceId).padStart(6, "0")}`;
-    await trx("invoices").where({ id: invoiceId }).update({ numero });
-
-    return { orderId: id, numeroFactura: numero };
+    return id;
   });
 
   const comprador = await db("users").where({ id: sesion.userId }).first();
@@ -121,15 +114,8 @@ export async function POST(request: Request) {
     .where("roles.nombre", "Administrador")
     .select("users.id");
 
-  const rolComprador = await db("users")
-    .join("roles", "roles.id", "users.rol_id")
-    .where("users.id", sesion.userId)
-    .select("roles.nombre as rol")
-    .first();
-  const base = rolComprador?.rol === "Entrenador" ? "/entrenador" : "/portal";
-
-  await Promise.all([
-    ...administradores.map((admin) =>
+  await Promise.all(
+    administradores.map((admin) =>
       crearNotificacion({
         userId: admin.id,
         tipo: "pedido",
@@ -137,15 +123,8 @@ export async function POST(request: Request) {
         subtitulo: `${comprador.nombre} ${comprador.apellido} · RD$${total.toLocaleString("es-DO")}`,
         link: "/admin/pedidos",
       })
-    ),
-    crearNotificacion({
-      userId: sesion.userId,
-      tipo: "factura",
-      titulo: `Factura ${numeroFactura} generada`,
-      subtitulo: "Sube tu comprobante de pago para confirmar la compra.",
-      link: `${base}/facturas`,
-    }),
-  ]);
+    )
+  );
 
   return NextResponse.json({ id: orderId, message: "Pedido creado correctamente." }, { status: 201 });
 }

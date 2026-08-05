@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   let query = db("invoices")
     .join("users", "users.id", "invoices.user_id")
     .select(
-      "invoices.id", "invoices.numero", "invoices.order_id", "invoices.monto", "invoices.estado", "invoices.fecha", "invoices.comprobante_path",
+      "invoices.id", "invoices.numero", "invoices.order_id", "invoices.monto", "invoices.estado", "invoices.fecha",
       "users.nombre", "users.apellido", "users.correo",
     );
 
@@ -32,7 +32,6 @@ export async function GET(request: Request) {
       monto: f.monto,
       estado: f.estado,
       fecha: f.fecha,
-      comprobantePath: f.comprobante_path,
       cliente: { nombre: f.nombre, apellido: f.apellido, correo: f.correo },
     })),
   });
