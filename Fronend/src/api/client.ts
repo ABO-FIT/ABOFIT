@@ -655,10 +655,17 @@ export interface Factura {
   monto: number;
   estado: "pendiente" | "pagada";
   fecha: string;
+  comprobante_path: string | null;
 }
 
 export function obtenerFacturas(token: string) {
   return request<{ facturas: Factura[] }>("/api/invoices", "GET", undefined, token);
+}
+
+export function subirComprobante(token: string, facturaId: number, archivo: File) {
+  const formData = new FormData();
+  formData.append("comprobante", archivo);
+  return request<{ message: string }>(`/api/invoices/${facturaId}/comprobante`, "POST", formData, token);
 }
 
 // ---- Administración ----
@@ -859,6 +866,7 @@ export interface FacturaAdmin {
   monto: number;
   estado: "pendiente" | "pagada";
   fecha: string;
+  comprobantePath: string | null;
   cliente: { nombre: string; apellido: string; correo: string };
 }
 
@@ -1013,7 +1021,7 @@ export function actualizarPlantillaFactura(token: string, payload: {
 // ---- Detalle de factura ----
 
 export interface DetalleFactura {
-  factura: { id: number; numero: string; monto: number; estado: "pendiente" | "pagada"; fecha: string; orderId: number; userId: number };
+  factura: { id: number; numero: string; monto: number; estado: "pendiente" | "pagada"; fecha: string; orderId: number; userId: number; comprobantePath: string | null };
   cliente: { nombre: string; apellido: string; correo: string; telefono: string };
   items: { name: string; price: number; qty: number }[];
   pedidoEstado: string | null;

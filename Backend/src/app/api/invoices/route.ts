@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const facturas = await db("invoices")
     .where({ user_id: sesion.userId })
     .orderBy("fecha", "desc")
-    .select("id", "numero", "order_id", "monto", "estado", "fecha");
+    .select("id", "numero", "order_id", "monto", "estado", "fecha", "comprobante_path");
 
   return NextResponse.json({ facturas });
 }

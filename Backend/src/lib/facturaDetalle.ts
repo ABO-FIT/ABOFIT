@@ -20,6 +20,7 @@ export async function obtenerDetalleFactura(facturaId: number) {
       fecha: factura.fecha,
       orderId: factura.order_id,
       userId: factura.user_id,
+      comprobantePath: factura.comprobante_path,
     },
     cliente,
     items,

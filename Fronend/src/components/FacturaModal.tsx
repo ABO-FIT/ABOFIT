@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { obtenerDetalleFactura, obtenerDetalleFacturaAdmin, type DetalleFactura } from "../api/client";
+import { obtenerDetalleFactura, obtenerDetalleFacturaAdmin, subirComprobante, type DetalleFactura } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { money } from "../lib/money";
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 export default function FacturaModal({
   facturaId,
@@ -15,12 +17,34 @@ export default function FacturaModal({
   const { token } = useAuth();
   const [detalle, setDetalle] = useState<DetalleFactura | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [archivo, setArchivo] = useState<File | null>(null);
+  const [subiendo, setSubiendo] = useState(false);
+  const [mensaje, setMensaje] = useState<string | null>(null);
 
-  useEffect(() => {
+  function cargarDetalle() {
     if (!token) return;
     const consulta = esAdmin ? obtenerDetalleFacturaAdmin(token, facturaId) : obtenerDetalleFactura(token, facturaId);
     consulta.then(setDetalle).catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar la factura."));
-  }, [token, facturaId, esAdmin]);
+  }
+
+  useEffect(cargarDetalle, [token, facturaId, esAdmin]);
+
+  async function handleSubirComprobante() {
+    if (!token || !archivo) return;
+    setError(null);
+    setMensaje(null);
+    setSubiendo(true);
+    try {
+      const respuesta = await subirComprobante(token, facturaId, archivo);
+      setMensaje(respuesta.message);
+      setArchivo(null);
+      cargarDetalle();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo subir el comprobante.");
+    } finally {
+      setSubiendo(false);
+    }
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -94,6 +118,47 @@ export default function FacturaModal({
                 <p style={{ margin: 0, fontSize: 13 }}>Banco: {detalle.plantilla.bankName}</p>
                 {detalle.plantilla.bankAccount && <p style={{ margin: 0, fontSize: 13 }}>Cuenta: {detalle.plantilla.bankAccount}</p>}
                 {detalle.plantilla.bankHolder && <p style={{ margin: 0, fontSize: 13 }}>Titular: {detalle.plantilla.bankHolder}</p>}
+              </div>
+            )}
+
+            {!esAdmin && detalle.factura.estado === "pendiente" && (
+              <div className="card" style={{ marginTop: 16 }}>
+                <p style={{ margin: 0, fontWeight: 600 }}>Comprobante de pago</p>
+                {detalle.factura.comprobantePath ? (
+                  <>
+                    <p style={{ margin: "6px 0", fontSize: 13, color: "var(--muted)" }}>
+                      Ya enviaste un comprobante. Un administrador confirmará tu pago pronto. Si necesitas reemplazarlo, sube uno nuevo.
+                    </p>
+                    <img
+                      src={`${API_URL}${detalle.factura.comprobantePath}`}
+                      alt="Comprobante de pago"
+                      style={{ width: "100%", maxWidth: 260, borderRadius: 8, display: "block", marginBottom: 10 }}
+                    />
+                  </>
+                ) : (
+                  <p style={{ margin: "6px 0", fontSize: 13, color: "var(--muted)" }}>
+                    Después de transferir, sube una foto o captura del comprobante para que podamos confirmar tu pago.
+                  </p>
+                )}
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setArchivo(e.target.files?.[0] ?? null)} />
+                <button type="button" style={{ marginTop: 8 }} disabled={!archivo || subiendo} onClick={handleSubirComprobante}>
+                  {subiendo ? "Subiendo..." : detalle.factura.comprobantePath ? "Reemplazar comprobante" : "Subir comprobante"}
+                </button>
+                {mensaje && <p role="status" style={{ marginTop: 8 }}>{mensaje}</p>}
+              </div>
+            )}
+
+            {esAdmin && detalle.factura.comprobantePath && (
+              <div className="card" style={{ marginTop: 16 }}>
+                <p style={{ margin: 0, fontWeight: 600 }}>Comprobante enviado por el cliente</p>
+                <a href={`${API_URL}${detalle.factura.comprobantePath}`} target="_blank" rel="noreferrer">
+                  <img
+                    src={`${API_URL}${detalle.factura.comprobantePath}`}
+                    alt="Comprobante de pago"
+                    style={{ width: "100%", maxWidth: 320, borderRadius: 8, display: "block", marginTop: 8 }}
+                  />
+                </a>
+                <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--muted)" }}>Haz clic en la imagen para verla en tamaño completo.</p>
               </div>
             )}
           </div>

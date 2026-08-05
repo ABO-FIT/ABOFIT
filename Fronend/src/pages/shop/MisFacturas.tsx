@@ -31,7 +31,7 @@ export default function MisFacturas() {
 
       {facturas.length === 0 && (
         <p style={{ color: "var(--muted)" }}>
-          Aún no tienes facturas. Se generan cuando tu pedido es aceptado por administración.
+          Aún no tienes facturas. Se generan de inmediato al confirmar tu compra.
         </p>
       )}
 
@@ -59,6 +59,9 @@ export default function MisFacturas() {
               >
                 {factura.estado === "pagada" ? "Pagada" : "Pendiente"}
               </span>
+              {factura.estado === "pendiente" && factura.comprobante_path && (
+                <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--muted)" }}>Comprobante enviado</p>
+              )}
             </div>
           </button>
         ))}
