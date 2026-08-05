@@ -1030,8 +1030,8 @@ export function actualizarPlantillaFactura(token: string, payload: {
 
 export interface DetalleFactura {
   factura: { id: number; numero: string; monto: number; estado: "pendiente" | "pagada"; fecha: string; orderId: number; userId: number };
-  cliente: { nombre: string; apellido: string; correo: string; telefono: string };
-  items: { name: string; price: number; qty: number }[];
+  cliente: { nombre: string; apellido: string; correo: string; telefono: string; rol: string };
+  items: { name: string; price: number; qty: number; cat: string | null }[];
   pedidoEstado: string | null;
   plantilla: {
     companyName: string; tagline: string | null; email: string | null; phone: string | null; address: string | null;

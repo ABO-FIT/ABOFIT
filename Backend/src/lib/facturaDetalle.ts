@@ -5,8 +5,15 @@ export async function obtenerDetalleFactura(facturaId: number) {
   if (!factura) return null;
 
   const [cliente, items, plantilla, pedido] = await Promise.all([
-    db("users").where({ id: factura.user_id }).select("nombre", "apellido", "correo", "telefono").first(),
-    db("order_items").where({ order_id: factura.order_id }).select("name", "price", "qty"),
+    db("users")
+      .join("roles", "roles.id", "users.rol_id")
+      .where("users.id", factura.user_id)
+      .select("users.nombre", "users.apellido", "users.correo", "users.telefono", "roles.nombre as rol")
+      .first(),
+    db("order_items")
+      .leftJoin("products", "products.id", "order_items.product_id")
+      .where("order_items.order_id", factura.order_id)
+      .select("order_items.name", "order_items.price", "order_items.qty", "products.cat"),
     db("invoice_template").first(),
     db("orders").where({ id: factura.order_id }).select("estado").first(),
   ]);
