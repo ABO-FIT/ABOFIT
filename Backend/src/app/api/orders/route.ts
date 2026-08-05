@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { parsearJson } from "@/lib/json";
+import { crearNotificacion } from "@/lib/notificaciones";
 
 const ROLES_COMPRA = ["Cliente", "Entrenador"];
 
@@ -101,6 +102,24 @@ export async function POST(request: Request) {
 
     return id;
   });
+
+  const comprador = await db("users").where({ id: sesion.userId }).first();
+  const administradores = await db("users")
+    .join("roles", "roles.id", "users.rol_id")
+    .where("roles.nombre", "Administrador")
+    .select("users.id");
+
+  await Promise.all(
+    administradores.map((admin) =>
+      crearNotificacion({
+        userId: admin.id,
+        tipo: "pedido",
+        titulo: `Nuevo pedido #${orderId}`,
+        subtitulo: `${comprador.nombre} ${comprador.apellido} · RD$${total.toLocaleString("es-DO")}`,
+        link: "/admin/pedidos",
+      })
+    )
+  );
 
   return NextResponse.json({ id: orderId, message: "Pedido creado correctamente." }, { status: 201 });
 }
