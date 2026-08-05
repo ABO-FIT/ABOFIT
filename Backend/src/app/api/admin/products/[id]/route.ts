@@ -108,6 +108,14 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     return NextResponse.json({ error: "Producto no encontrado." }, { status: 404 });
   }
 
+  const yaVendido = await db("order_items").where({ product_id: productId }).first();
+  if (yaVendido) {
+    return NextResponse.json(
+      { error: "No se puede eliminar: este producto ya fue vendido en uno o más pedidos." },
+      { status: 409 },
+    );
+  }
+
   const imagenes = await db("product_images").where({ product_id: productId });
   for (const img of imagenes) {
     await eliminarImagen(img.path);

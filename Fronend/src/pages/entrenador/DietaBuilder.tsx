@@ -61,8 +61,14 @@ export default function DietaBuilder({ clientId }: { clientId: number }) {
 
   async function handleEliminarPlantilla(id: number) {
     if (!token) return;
-    await eliminarPlantillaDieta(token, id);
-    cargarPlantillas();
+    setError(null);
+    try {
+      await eliminarPlantillaDieta(token, id);
+      setPlantillaSeleccionada("");
+      cargarPlantillas();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo eliminar la plantilla.");
+    }
   }
 
   function actualizarComida(index: number, cambios: Partial<Comida>) {

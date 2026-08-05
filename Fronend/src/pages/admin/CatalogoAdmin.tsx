@@ -139,8 +139,13 @@ export default function CatalogoAdmin() {
 
   async function eliminar(id: number) {
     if (!token) return;
-    await eliminarProducto(token, id);
-    cargar();
+    setError(null);
+    try {
+      await eliminarProducto(token, id);
+      cargar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo eliminar el producto.");
+    }
   }
 
   const productosFiltrados = productos.filter((p) => {

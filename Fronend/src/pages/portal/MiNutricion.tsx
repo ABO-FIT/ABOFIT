@@ -44,8 +44,13 @@ export default function MiNutricion() {
 
   async function handleEliminar(id: number) {
     if (!token) return;
-    await eliminarRegistroNutricion(token, id);
-    cargar();
+    setError(null);
+    try {
+      await eliminarRegistroNutricion(token, id);
+      cargar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo eliminar el registro.");
+    }
   }
 
   return (

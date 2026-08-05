@@ -62,8 +62,14 @@ export default function RutinaBuilder({ clientId }: { clientId: number }) {
 
   async function handleEliminarPlantilla(id: number) {
     if (!token) return;
-    await eliminarPlantillaRutina(token, id);
-    cargarPlantillas();
+    setError(null);
+    try {
+      await eliminarPlantillaRutina(token, id);
+      setPlantillaSeleccionada("");
+      cargarPlantillas();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo eliminar la plantilla.");
+    }
   }
 
   function actualizarDia(index: number, cambios: Partial<DiaRutina>) {
