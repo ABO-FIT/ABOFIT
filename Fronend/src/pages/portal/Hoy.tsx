@@ -2,15 +2,18 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { marcarComidaPlan, marcarDiaRutina, obtenerHoy, obtenerLogros, type HoyRespuesta, type Logro } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import ErrorReintentar from "../../components/ErrorReintentar";
 
 export default function Hoy() {
   const { token } = useAuth();
   const [datos, setDatos] = useState<HoyRespuesta | null>(null);
   const [logros, setLogros] = useState<Logro[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [avisoAccion, setAvisoAccion] = useState<string | null>(null);
 
   function cargar() {
     if (!token) return;
+    setError(null);
     obtenerHoy(token)
       .then(setDatos)
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar tu día."));
@@ -23,22 +26,28 @@ export default function Hoy() {
 
   async function toggleHoy(diaId: string) {
     if (!token) return;
-    await marcarDiaRutina(token, diaId);
-    cargar();
+    setAvisoAccion(null);
+    try {
+      await marcarDiaRutina(token, diaId);
+      cargar();
+    } catch (err) {
+      setAvisoAccion(err instanceof Error ? err.message : "No se pudo actualizar el entrenamiento.");
+    }
   }
 
   async function toggleComida(meal: string) {
     if (!token) return;
-    await marcarComidaPlan(token, meal);
-    cargar();
+    setAvisoAccion(null);
+    try {
+      await marcarComidaPlan(token, meal);
+      cargar();
+    } catch (err) {
+      setAvisoAccion(err instanceof Error ? err.message : "No se pudo actualizar la comida.");
+    }
   }
 
   if (error) {
-    return (
-      <main className="wide">
-        <p role="alert">{error}</p>
-      </main>
-    );
+    return <ErrorReintentar mensaje={error} onReintentar={cargar} />;
   }
 
   if (!datos) {
@@ -65,6 +74,8 @@ export default function Hoy() {
     <main className="wide">
       <span className="eyebrow">Tu día</span>
       <h1>Hoy</h1>
+
+      {avisoAccion && <p role="alert">{avisoAccion}</p>}
 
       <div className="card" style={{ marginBottom: 16 }}>
         <h2 style={{ margin: "0 0 8px" }}>Entrenamiento de hoy</h2>

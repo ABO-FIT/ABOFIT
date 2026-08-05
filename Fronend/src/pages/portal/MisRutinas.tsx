@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { marcarDiaRutina, obtenerMisRutinas, type MisRutinasRespuesta } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import ErrorReintentar from "../../components/ErrorReintentar";
 
 export default function MisRutinas() {
   const { token } = useAuth();
   const [datos, setDatos] = useState<MisRutinasRespuesta | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [avisoAccion, setAvisoAccion] = useState<string | null>(null);
 
   function cargar() {
     if (!token) return;
+    setError(null);
     obtenerMisRutinas(token)
       .then(setDatos)
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar tus rutinas."));
@@ -18,16 +21,17 @@ export default function MisRutinas() {
 
   async function toggle(diaId: string) {
     if (!token) return;
-    await marcarDiaRutina(token, diaId);
-    cargar();
+    setAvisoAccion(null);
+    try {
+      await marcarDiaRutina(token, diaId);
+      cargar();
+    } catch (err) {
+      setAvisoAccion(err instanceof Error ? err.message : "No se pudo actualizar el entrenamiento.");
+    }
   }
 
   if (error) {
-    return (
-      <main className="wide">
-        <p role="alert">{error}</p>
-      </main>
-    );
+    return <ErrorReintentar mensaje={error} onReintentar={cargar} />;
   }
 
   if (!datos) {
@@ -52,6 +56,8 @@ export default function MisRutinas() {
   return (
     <main className="wide">
       <h1>Mis Rutinas</h1>
+
+      {avisoAccion && <p role="alert">{avisoAccion}</p>}
 
       <div className="card" style={{ marginBottom: 16 }}>
         <strong>Cumplimiento de esta semana: {porcentaje}%</strong>

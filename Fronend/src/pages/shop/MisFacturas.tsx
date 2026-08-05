@@ -3,6 +3,7 @@ import { obtenerFacturas, type Factura } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
 import FacturaModal from "../../components/FacturaModal";
+import ErrorReintentar from "../../components/ErrorReintentar";
 
 export default function MisFacturas() {
   const { token } = useAuth();
@@ -10,19 +11,18 @@ export default function MisFacturas() {
   const [error, setError] = useState<string | null>(null);
   const [facturaAbierta, setFacturaAbierta] = useState<number | null>(null);
 
-  useEffect(() => {
+  function cargar() {
     if (!token) return;
+    setError(null);
     obtenerFacturas(token)
       .then(({ facturas }) => setFacturas(facturas))
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar tus facturas."));
-  }, [token]);
+  }
+
+  useEffect(cargar, [token]);
 
   if (error) {
-    return (
-      <main className="wide">
-        <p role="alert">{error}</p>
-      </main>
-    );
+    return <ErrorReintentar mensaje={error} onReintentar={cargar} />;
   }
 
   return (

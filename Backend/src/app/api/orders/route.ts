@@ -6,6 +6,12 @@ import { crearNotificacion } from "@/lib/notificaciones";
 
 const ROLES_COMPRA = ["Cliente", "Entrenador"];
 
+class StockInsuficienteError extends Error {
+  constructor(public productName: string) {
+    super(`Stock insuficiente para ${productName}`);
+  }
+}
+
 export async function GET(request: Request) {
   const sesion = obtenerSesion(request);
   if (!sesion || !ROLES_COMPRA.includes(sesion.rol)) {
@@ -69,7 +75,11 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   const productIdDirecto = body && typeof body.productId === "number" ? body.productId : null;
-  const qtyDirecta = body && typeof body.qty === "number" && body.qty > 0 ? Math.floor(body.qty) : 1;
+
+  if (body && body.qty !== undefined && (typeof body.qty !== "number" || !Number.isFinite(body.qty) || body.qty <= 0)) {
+    return NextResponse.json({ error: "La cantidad debe ser un número mayor a cero." }, { status: 400 });
+  }
+  const qtyDirecta = body && typeof body.qty === "number" ? Math.floor(body.qty) : 1;
 
   let items: { product_id: number; name: string; price: number; stock: number; qty: number }[];
 
@@ -106,31 +116,46 @@ export async function POST(request: Request) {
 
   const total = items.reduce((suma, item) => suma + item.price * item.qty, 0);
 
-  const orderId = await db.transaction(async (trx) => {
-    const [id] = await trx("orders").insert({ user_id: sesion.userId, total, estado: "pendiente" });
+  let orderId: number;
+  try {
+    orderId = await db.transaction(async (trx) => {
+      const [id] = await trx("orders").insert({ user_id: sesion.userId, total, estado: "pendiente" });
 
-    await trx("order_items").insert(
-      items.map((item) => ({
-        order_id: id,
-        product_id: item.product_id,
-        name: item.name,
-        price: item.price,
-        qty: item.qty,
-      })),
-    );
+      await trx("order_items").insert(
+        items.map((item) => ({
+          order_id: id,
+          product_id: item.product_id,
+          name: item.name,
+          price: item.price,
+          qty: item.qty,
+        })),
+      );
 
-    for (const item of items) {
-      await trx("products").where({ id: item.product_id }).decrement("stock", item.qty);
+      for (const item of items) {
+        const filasActualizadas = await trx("products")
+          .where({ id: item.product_id })
+          .andWhere("stock", ">=", item.qty)
+          .decrement("stock", item.qty);
+
+        if (filasActualizadas === 0) {
+          throw new StockInsuficienteError(item.name);
+        }
+      }
+
+      if (productIdDirecto) {
+        await trx("cart_items").where({ user_id: sesion.userId, product_id: productIdDirecto }).delete();
+      } else {
+        await trx("cart_items").where({ user_id: sesion.userId }).delete();
+      }
+
+      return id;
+    });
+  } catch (err) {
+    if (err instanceof StockInsuficienteError) {
+      return NextResponse.json({ error: `No hay suficiente existencia de "${err.productName}".` }, { status: 400 });
     }
-
-    if (productIdDirecto) {
-      await trx("cart_items").where({ user_id: sesion.userId, product_id: productIdDirecto }).delete();
-    } else {
-      await trx("cart_items").where({ user_id: sesion.userId }).delete();
-    }
-
-    return id;
-  });
+    throw err;
+  }
 
   const comprador = await db("users").where({ id: sesion.userId }).first();
   const administradores = await db("users")

@@ -1,25 +1,25 @@
 import { useEffect, useState } from "react";
 import { obtenerReportesEntrenador, type ReportesEntrenador } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import ErrorReintentar from "../../components/ErrorReintentar";
 
 export default function Reportes() {
   const { token } = useAuth();
   const [datos, setDatos] = useState<ReportesEntrenador | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  function cargar() {
     if (!token) return;
+    setError(null);
     obtenerReportesEntrenador(token)
       .then(setDatos)
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar los reportes."));
-  }, [token]);
+  }
+
+  useEffect(cargar, [token]);
 
   if (error) {
-    return (
-      <main className="wide">
-        <p role="alert">{error}</p>
-      </main>
-    );
+    return <ErrorReintentar mensaje={error} onReintentar={cargar} />;
   }
 
   if (!datos) {

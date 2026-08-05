@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
 import ProductModal from "../../components/ProductModal";
 import FacturaModal from "../../components/FacturaModal";
+import ErrorReintentar from "../../components/ErrorReintentar";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -80,6 +81,7 @@ export default function MisPedidos() {
 
   function cargar() {
     if (!token) return;
+    setError(null);
     obtenerPedidos(token)
       .then(({ pedidos }) => setPedidos(pedidos))
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar tus pedidos."));
@@ -88,11 +90,7 @@ export default function MisPedidos() {
   useEffect(cargar, [token]);
 
   if (error) {
-    return (
-      <main className="wide">
-        <p role="alert">{error}</p>
-      </main>
-    );
+    return <ErrorReintentar mensaje={error} onReintentar={cargar} />;
   }
 
   return (
