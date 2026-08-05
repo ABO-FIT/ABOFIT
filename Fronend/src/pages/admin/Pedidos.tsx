@@ -80,7 +80,9 @@ export default function Pedidos() {
                 <p style={{ margin: 0, color: "var(--muted)" }}>{new Date(pedido.fecha).toLocaleDateString("es-DO")}</p>
               </div>
               <select value={pedido.estado} onChange={(e) => cambiarEstado(pedido.id, e.target.value as PedidoAdmin["estado"])}>
-                {ESTADOS.map((e) => <option key={e} value={e}>{ETIQUETAS[e]}</option>)}
+                {ESTADOS.filter((e) => e !== "cancelado" || !pedido.facturaId).map((e) => (
+                  <option key={e} value={e}>{ETIQUETAS[e]}</option>
+                ))}
               </select>
             </div>
             <ul>

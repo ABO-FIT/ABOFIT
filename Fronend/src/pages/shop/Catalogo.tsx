@@ -190,10 +190,26 @@ export default function Catalogo() {
                   <>
                     <button type="button" className="secondary" style={{ padding: "2px 10px", fontSize: 16 }} onClick={() => handleDecrementar(producto.id)}>−</button>
                     <span style={{ fontWeight: 700, minWidth: 18, textAlign: "center" }}>{qty}</span>
-                    <button type="button" style={{ padding: "2px 10px", fontSize: 16 }} onClick={() => handleIncrementar(producto.id)}>+</button>
+                    <button
+                      type="button"
+                      style={{ padding: "2px 10px", fontSize: 16 }}
+                      disabled={qty >= producto.stock}
+                      title={qty >= producto.stock ? "No hay más existencia disponible" : undefined}
+                      onClick={() => handleIncrementar(producto.id)}
+                    >
+                      +
+                    </button>
                   </>
                 ) : (
-                  <button type="button" className="secondary" style={{ fontSize: 12 }} onClick={() => handleIncrementar(producto.id)}>+ Agregar</button>
+                  <button
+                    type="button"
+                    className="secondary"
+                    style={{ fontSize: 12 }}
+                    disabled={producto.stock <= 0}
+                    onClick={() => handleIncrementar(producto.id)}
+                  >
+                    {producto.stock <= 0 ? "Agotado" : "+ Agregar"}
+                  </button>
                 )}
               </div>
             </div>

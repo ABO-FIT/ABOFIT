@@ -21,21 +21,30 @@ export async function POST(request: Request, { params }: { params: { id: string 
     return NextResponse.json({ error: "Este pedido ya tiene una factura generada." }, { status: 400 });
   }
 
-  const numero = await db.transaction(async (trx) => {
-    const [invoiceId] = await trx("invoices").insert({
-      numero: "PENDIENTE",
-      order_id: orderId,
-      user_id: pedido.user_id,
-      monto: pedido.total,
-      estado: "pagada",
-      fecha: new Date().toISOString().slice(0, 10),
+  let numero: string;
+  try {
+    numero = await db.transaction(async (trx) => {
+      const [invoiceId] = await trx("invoices").insert({
+        numero: "PENDIENTE",
+        order_id: orderId,
+        user_id: pedido.user_id,
+        monto: pedido.total,
+        estado: "pagada",
+        fecha: new Date().toISOString().slice(0, 10),
+      });
+
+      const numeroGenerado = `FAC-${String(invoiceId).padStart(6, "0")}`;
+      await trx("invoices").where({ id: invoiceId }).update({ numero: numeroGenerado });
+
+      return numeroGenerado;
     });
-
-    const numeroGenerado = `FAC-${String(invoiceId).padStart(6, "0")}`;
-    await trx("invoices").where({ id: invoiceId }).update({ numero: numeroGenerado });
-
-    return numeroGenerado;
-  });
+  } catch (err) {
+    const codigo = (err as { code?: string })?.code;
+    if (codigo === "ER_DUP_ENTRY") {
+      return NextResponse.json({ error: "Este pedido ya tiene una factura generada." }, { status: 409 });
+    }
+    throw err;
+  }
 
   const admin = await db("users").where({ id: sesion.userId }).first();
   await registrarAuditoria({

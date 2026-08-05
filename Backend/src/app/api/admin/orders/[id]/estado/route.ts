@@ -32,6 +32,16 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: "Estado inválido." }, { status: 400 });
   }
 
+  if (estado === "cancelado" && pedido.estado !== "cancelado") {
+    const facturaExistente = await db("invoices").where({ order_id: orderId }).first();
+    if (facturaExistente) {
+      return NextResponse.json(
+        { error: "No se puede cancelar un pedido que ya tiene una factura generada." },
+        { status: 400 },
+      );
+    }
+  }
+
   await db.transaction(async (trx) => {
     await trx("orders").where({ id: orderId }).update({ estado });
 

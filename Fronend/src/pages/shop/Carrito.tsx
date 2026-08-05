@@ -33,18 +33,32 @@ export default function Carrito() {
 
   useEffect(cargar, [token]);
 
-  async function handleCantidad(productId: number, qty: number) {
+  async function handleCantidad(productId: number, qty: number, stock: number) {
     if (!token || qty < 1) return;
-    await actualizarCantidadCarrito(token, productId, qty);
-    cargar();
-    refrescarCarrito();
+    setError(null);
+    const qtyFinal = Math.min(qty, stock);
+    try {
+      await actualizarCantidadCarrito(token, productId, qtyFinal);
+      if (qty > stock) {
+        setError(`Solo hay ${stock} unidades disponibles de ese producto.`);
+      }
+      cargar();
+      refrescarCarrito();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo actualizar la cantidad.");
+    }
   }
 
   async function handleQuitar(productId: number) {
     if (!token) return;
-    await quitarDelCarrito(token, productId);
-    cargar();
-    refrescarCarrito();
+    setError(null);
+    try {
+      await quitarDelCarrito(token, productId);
+      cargar();
+      refrescarCarrito();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo quitar el producto.");
+    }
   }
 
   async function handleAgregarDesdeModal(productId: number) {
@@ -125,8 +139,9 @@ export default function Carrito() {
               <input
                 type="number"
                 min={1}
+                max={item.stock}
                 value={item.qty}
-                onChange={(e) => handleCantidad(item.id, Number(e.target.value))}
+                onChange={(e) => handleCantidad(item.id, Number(e.target.value), item.stock)}
                 style={{ width: 60 }}
               />
               <button type="button" className="secondary" onClick={() => handleQuitar(item.id)}>Quitar</button>
