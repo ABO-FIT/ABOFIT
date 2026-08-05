@@ -109,16 +109,7 @@ export default function FacturaModal({
   }, [token, facturaId, esAdmin]);
 
   function handlePrint() {
-    const contenido = document.getElementById("invoice-print")?.innerHTML;
-    if (!contenido) return;
-    const ventana = window.open("", "_blank", "width=750,height=900");
-    if (!ventana) return;
-    ventana.document.write(`<!DOCTYPE html><html><head><title>Factura ${detalle?.factura.numero ?? ""}</title>
-      <style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#fff;}</style>
-      </head><body>${contenido}</body></html>`);
-    ventana.document.close();
-    ventana.focus();
-    setTimeout(() => ventana.print(), 400);
+    window.print();
   }
 
   return (
