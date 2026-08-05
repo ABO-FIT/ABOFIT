@@ -87,7 +87,7 @@ export default function Carrito() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 220px))", gap: 16 }}>
         {items.map((item) => (
-          <div key={item.id} className="product-card">
+          <div key={item.id} className="product-card" style={{ maxWidth: 220 }}>
             <div onClick={() => setProductoAbierto(item.id)} style={{ cursor: "pointer" }}>
               <div
                 className="product-image"

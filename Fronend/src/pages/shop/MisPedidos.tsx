@@ -54,7 +54,7 @@ export default function MisPedidos() {
                 <div
                   key={index}
                   className="product-card"
-                  style={{ cursor: item.productId ? "pointer" : "default" }}
+                  style={{ cursor: item.productId ? "pointer" : "default", maxWidth: 220 }}
                   onClick={() => item.productId && setProductoAbierto(item.productId)}
                 >
                   <div

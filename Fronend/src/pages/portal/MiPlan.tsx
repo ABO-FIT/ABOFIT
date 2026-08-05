@@ -149,7 +149,7 @@ export default function MiPlan() {
           <h2 style={{ marginTop: 24 }}>Recomendado para tu objetivo</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 220px))", gap: 16 }}>
             {recomendados.map((producto) => (
-              <button key={producto.id} type="button" className="product-card" onClick={() => setProductoAbierto(producto.id)}>
+              <button key={producto.id} type="button" className="product-card" style={{ maxWidth: 220 }} onClick={() => setProductoAbierto(producto.id)}>
                 <div
                   className="product-image"
                   style={producto.images[0] ? { backgroundImage: `url(${API_URL}${producto.images[0]})` } : undefined}
