@@ -47,9 +47,9 @@ export default function MisPedidos() {
               <strong>Pedido #{pedido.id}</strong>
               <span className="tag" style={{ background: "var(--line)" }}>{ESTADOS[pedido.estado]}</span>
             </div>
-            <p style={{ color: "var(--muted)", margin: "4px 0 12px" }}>{new Date(pedido.fecha).toLocaleDateString("es-DO")}</p>
+            <p style={{ color: "var(--muted)", margin: "4px 0 10px" }}>{new Date(pedido.fecha).toLocaleDateString("es-DO")}</p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 220px))", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 220px))", gap: 16 }}>
               {pedido.items.map((item, index) => (
                 <div key={index} className="product-card" style={{ maxWidth: 220 }}>
                   <div
@@ -73,7 +73,7 @@ export default function MisPedidos() {
                         </div>
                       )}
                       {!item.productId && (
-                        <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--muted)" }}>Producto ya no disponible en el catálogo.</p>
+                        <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--muted)" }}>Producto ya no disponible en el catálogo.</p>
                       )}
                     </div>
                   </div>
