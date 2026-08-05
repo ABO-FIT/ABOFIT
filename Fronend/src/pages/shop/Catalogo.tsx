@@ -1,7 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   actualizarCantidadCarrito,
   agregarAlCarrito,
+  crearPedido,
   obtenerCarrito,
   obtenerCatalogo,
   obtenerObjetivos,
@@ -20,6 +22,9 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 export default function Catalogo() {
   const { token } = useAuth();
   const { refrescarCarrito } = useCart();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const base = location.pathname.startsWith("/entrenador") ? "/entrenador" : "/portal";
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [objetivos, setObjetivos] = useState<GoalAdmin[]>([]);
@@ -91,6 +96,19 @@ export default function Catalogo() {
   async function handleAgregarDesdeModal(productId: number) {
     await handleIncrementar(productId);
     setProductoAbierto(null);
+  }
+
+  async function handleComprarAhora(productId: number) {
+    if (!token) return;
+    setError(null);
+    try {
+      await crearPedido(token, { productId, qty: 1 });
+      setProductoAbierto(null);
+      refrescarCarrito();
+      navigate(`${base}/pedidos`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    }
   }
 
   return (
@@ -185,7 +203,12 @@ export default function Catalogo() {
       </div>
 
       {productoAbierto && (
-        <ProductModal productId={productoAbierto} onClose={() => setProductoAbierto(null)} onAgregar={handleAgregarDesdeModal} />
+        <ProductModal
+          productId={productoAbierto}
+          onClose={() => setProductoAbierto(null)}
+          onAgregar={handleAgregarDesdeModal}
+          onComprarAhora={handleComprarAhora}
+        />
       )}
     </main>
   );

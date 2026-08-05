@@ -61,6 +61,21 @@ export default function Carrito() {
     }
   }
 
+  async function handleComprarAhora(productId: number, qty: number) {
+    if (!token) return;
+    setError(null);
+    setMensaje(null);
+    try {
+      await crearPedido(token, { productId, qty });
+      setProductoAbierto(null);
+      cargar();
+      refrescarCarrito();
+      navigate(`${base}/pedidos`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    }
+  }
+
   async function handleCheckout() {
     if (!token) return;
     setError(null);
@@ -106,7 +121,7 @@ export default function Carrito() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "0 14px 14px" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "0 14px 14px", flexWrap: "wrap" }} onClick={(e) => e.stopPropagation()}>
               <input
                 type="number"
                 min={1}
@@ -115,6 +130,11 @@ export default function Carrito() {
                 style={{ width: 60 }}
               />
               <button type="button" className="secondary" onClick={() => handleQuitar(item.id)}>Quitar</button>
+            </div>
+            <div style={{ padding: "0 14px 14px" }} onClick={(e) => e.stopPropagation()}>
+              <button type="button" className="secondary" style={{ width: "100%", fontSize: 13 }} onClick={() => handleComprarAhora(item.id, item.qty)}>
+                Comprar solo este
+              </button>
             </div>
           </div>
         ))}
@@ -130,7 +150,15 @@ export default function Carrito() {
       )}
 
       {productoAbierto && (
-        <ProductModal productId={productoAbierto} onClose={() => setProductoAbierto(null)} onAgregar={handleAgregarDesdeModal} />
+        <ProductModal
+          productId={productoAbierto}
+          onClose={() => setProductoAbierto(null)}
+          onAgregar={handleAgregarDesdeModal}
+          onComprarAhora={(id) => {
+            const item = items.find((i) => i.id === id);
+            handleComprarAhora(id, item?.qty ?? 1);
+          }}
+        />
       )}
     </main>
   );

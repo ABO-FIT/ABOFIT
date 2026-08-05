@@ -647,8 +647,8 @@ export function obtenerPedidos(token: string) {
   return request<{ pedidos: Pedido[] }>("/api/orders", "GET", undefined, token);
 }
 
-export function crearPedido(token: string) {
-  return request<{ id: number; message: string }>("/api/orders", "POST", undefined, token);
+export function crearPedido(token: string, compraDirecta?: { productId: number; qty?: number }) {
+  return request<{ id: number; message: string }>("/api/orders", "POST", compraDirecta, token);
 }
 
 export function subirComprobantePedido(token: string, orderId: number, archivo: File) {

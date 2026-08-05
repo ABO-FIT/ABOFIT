@@ -32,10 +32,12 @@ export default function ProductModal({
   productId,
   onClose,
   onAgregar,
+  onComprarAhora,
 }: {
   productId: number;
   onClose: () => void;
   onAgregar?: (id: number) => void;
+  onComprarAhora?: (id: number) => void;
 }) {
   const [producto, setProducto] = useState<ProductoDetalle | null>(null);
   const [pestana, setPestana] = useState<ClavePestana>("beneficios");
@@ -125,10 +127,19 @@ export default function ProductModal({
               )}
             </div>
 
-            {onAgregar && (
-              <button type="button" style={{ marginTop: 16 }} onClick={() => onAgregar(producto.id)}>
-                Agregar al carrito
-              </button>
+            {(onAgregar || onComprarAhora) && (
+              <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+                {onAgregar && (
+                  <button type="button" onClick={() => onAgregar(producto.id)}>
+                    Agregar al carrito
+                  </button>
+                )}
+                {onComprarAhora && (
+                  <button type="button" className="secondary" onClick={() => onComprarAhora(producto.id)}>
+                    Comprar ahora
+                  </button>
+                )}
+              </div>
             )}
           </>
         )}

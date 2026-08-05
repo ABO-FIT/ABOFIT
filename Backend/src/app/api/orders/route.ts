@@ -67,21 +67,41 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
-  const items = await db("cart_items")
-    .join("products", "products.id", "cart_items.product_id")
-    .where("cart_items.user_id", sesion.userId)
-    .select("products.id as product_id", "products.name", "products.price", "products.stock", "cart_items.qty");
+  const body = await request.json().catch(() => null);
+  const productIdDirecto = body && typeof body.productId === "number" ? body.productId : null;
+  const qtyDirecta = body && typeof body.qty === "number" && body.qty > 0 ? Math.floor(body.qty) : 1;
 
-  if (items.length === 0) {
-    return NextResponse.json({ error: "Tu carrito está vacío." }, { status: 400 });
-  }
+  let items: { product_id: number; name: string; price: number; stock: number; qty: number }[];
 
-  const sinStock = items.find((item) => item.qty > item.stock);
-  if (sinStock) {
-    return NextResponse.json(
-      { error: `No hay suficiente existencia de "${sinStock.name}" (disponible: ${sinStock.stock}).` },
-      { status: 400 },
-    );
+  if (productIdDirecto) {
+    const producto = await db("products").where({ id: productIdDirecto }).first();
+    if (!producto) {
+      return NextResponse.json({ error: "Producto no encontrado." }, { status: 404 });
+    }
+    if (qtyDirecta > producto.stock) {
+      return NextResponse.json(
+        { error: `No hay suficiente existencia de "${producto.name}" (disponible: ${producto.stock}).` },
+        { status: 400 },
+      );
+    }
+    items = [{ product_id: producto.id, name: producto.name, price: producto.price, stock: producto.stock, qty: qtyDirecta }];
+  } else {
+    items = await db("cart_items")
+      .join("products", "products.id", "cart_items.product_id")
+      .where("cart_items.user_id", sesion.userId)
+      .select("products.id as product_id", "products.name", "products.price", "products.stock", "cart_items.qty");
+
+    if (items.length === 0) {
+      return NextResponse.json({ error: "Tu carrito está vacío." }, { status: 400 });
+    }
+
+    const sinStock = items.find((item) => item.qty > item.stock);
+    if (sinStock) {
+      return NextResponse.json(
+        { error: `No hay suficiente existencia de "${sinStock.name}" (disponible: ${sinStock.stock}).` },
+        { status: 400 },
+      );
+    }
   }
 
   const total = items.reduce((suma, item) => suma + item.price * item.qty, 0);
@@ -103,7 +123,11 @@ export async function POST(request: Request) {
       await trx("products").where({ id: item.product_id }).decrement("stock", item.qty);
     }
 
-    await trx("cart_items").where({ user_id: sesion.userId }).delete();
+    if (productIdDirecto) {
+      await trx("cart_items").where({ user_id: sesion.userId, product_id: productIdDirecto }).delete();
+    } else {
+      await trx("cart_items").where({ user_id: sesion.userId }).delete();
+    }
 
     return id;
   });

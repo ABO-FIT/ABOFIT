@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { money } from "../../lib/money";
-import { agregarAlCarrito, obtenerCatalogo, obtenerMiPlan, type MiPlanRespuesta, type Producto } from "../../api/client";
+import { agregarAlCarrito, crearPedido, obtenerCatalogo, obtenerMiPlan, type MiPlanRespuesta, type Producto } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import ProductModal from "../../components/ProductModal";
@@ -39,6 +40,7 @@ function SeccionDesplegable({ titulo, children }: { titulo: string; children: Re
 export default function MiPlan() {
   const { token } = useAuth();
   const { refrescarCarrito } = useCart();
+  const navigate = useNavigate();
   const [datos, setDatos] = useState<MiPlanRespuesta | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [recomendados, setRecomendados] = useState<Producto[]>([]);
@@ -95,6 +97,19 @@ export default function MiPlan() {
       setMensaje("Producto agregado al carrito.");
       setProductoAbierto(null);
       refrescarCarrito();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    }
+  }
+
+  async function handleComprarAhora(productId: number) {
+    if (!token) return;
+    setError(null);
+    try {
+      await crearPedido(token, { productId, qty: 1 });
+      setProductoAbierto(null);
+      refrescarCarrito();
+      navigate("/portal/pedidos");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
     }
@@ -182,7 +197,12 @@ export default function MiPlan() {
       )}
 
       {productoAbierto && (
-        <ProductModal productId={productoAbierto} onClose={() => setProductoAbierto(null)} onAgregar={handleAgregar} />
+        <ProductModal
+          productId={productoAbierto}
+          onClose={() => setProductoAbierto(null)}
+          onAgregar={handleAgregar}
+          onComprarAhora={handleComprarAhora}
+        />
       )}
 
       <SeccionDesplegable titulo="Rutina semanal">
