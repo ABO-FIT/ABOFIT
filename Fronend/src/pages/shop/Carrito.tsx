@@ -85,7 +85,7 @@ export default function Carrito() {
 
       {items.length === 0 && <p style={{ color: "var(--muted)" }}>Tu carrito está vacío.</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 220px))", gap: 16 }}>
         {items.map((item) => (
           <div key={item.id} className="product-card">
             <div onClick={() => setProductoAbierto(item.id)} style={{ cursor: "pointer" }}>

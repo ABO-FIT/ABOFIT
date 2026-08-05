@@ -147,7 +147,7 @@ export default function MiPlan() {
       {recomendados.length > 0 && (
         <>
           <h2 style={{ marginTop: 24 }}>Recomendado para tu objetivo</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 220px))", gap: 16 }}>
             {recomendados.map((producto) => (
               <button key={producto.id} type="button" className="product-card" onClick={() => setProductoAbierto(producto.id)}>
                 <div

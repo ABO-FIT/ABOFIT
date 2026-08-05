@@ -49,7 +49,7 @@ export default function MisPedidos() {
             </div>
             <p style={{ color: "var(--muted)", margin: "4px 0 12px" }}>{new Date(pedido.fecha).toLocaleDateString("es-DO")}</p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 220px))", gap: 12 }}>
               {pedido.items.map((item, index) => (
                 <div
                   key={index}
