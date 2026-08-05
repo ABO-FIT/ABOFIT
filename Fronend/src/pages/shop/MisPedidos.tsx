@@ -42,14 +42,14 @@ export default function MisPedidos() {
 
       <div style={{ display: "grid", gap: 12 }}>
         {pedidos.map((pedido) => (
-          <div key={pedido.id} className="card">
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div key={pedido.id} className="card" style={{ width: "fit-content", minWidth: 280, maxWidth: "100%" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 24 }}>
               <strong>Pedido #{pedido.id}</strong>
               <span className="tag" style={{ background: "var(--line)" }}>{ESTADOS[pedido.estado]}</span>
             </div>
             <p style={{ color: "var(--muted)", margin: "4px 0 10px" }}>{new Date(pedido.fecha).toLocaleDateString("es-DO")}</p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 220px))", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 220px))", gap: 16 }}>
               {pedido.items.map((item, index) => (
                 <div key={index} className="product-card" style={{ maxWidth: 220 }}>
                   <div
