@@ -33,7 +33,10 @@ export default function MisPagos() {
           <div key={pago.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <strong>{pago.concepto}</strong>
-              <p style={{ margin: 0, color: "var(--muted)" }}>{new Date(pago.fecha).toLocaleDateString("es-DO")}</p>
+              <p style={{ margin: 0, color: "var(--muted)" }}>
+                {new Date(pago.fecha).toLocaleDateString("es-DO")}
+                {pago.estado === "pagado" && pago.trainer_nombre && ` · Confirmado por ${pago.trainer_nombre} ${pago.trainer_apellido ?? ""}`.trimEnd()}
+              </p>
             </div>
             <div style={{ textAlign: "right" }}>
               <p style={{ margin: 0, fontWeight: 700 }}>{money(pago.monto)}</p>

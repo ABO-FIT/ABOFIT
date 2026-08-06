@@ -1067,6 +1067,8 @@ export interface Pago {
   fecha: string;
   estado: "pagado" | "pendiente";
   comprobante_path: string | null;
+  trainer_nombre?: string | null;
+  trainer_apellido?: string | null;
 }
 
 export function obtenerPagosCliente(token: string, clientId: number) {

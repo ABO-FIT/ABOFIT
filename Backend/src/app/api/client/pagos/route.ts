@@ -9,9 +9,19 @@ export async function GET(request: Request) {
   }
 
   const pagos = await db("payments")
+    .leftJoin("users as trainer", "trainer.id", "payments.trainer_id")
     .where({ client_id: sesion.userId })
     .orderBy("fecha", "desc")
-    .select("id", "monto", "concepto", "fecha", "estado", "comprobante_path");
+    .select(
+      "payments.id",
+      "payments.monto",
+      "payments.concepto",
+      "payments.fecha",
+      "payments.estado",
+      "payments.comprobante_path",
+      "trainer.nombre as trainer_nombre",
+      "trainer.apellido as trainer_apellido"
+    );
 
   return NextResponse.json({ pagos });
 }
