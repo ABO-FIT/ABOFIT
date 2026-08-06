@@ -11,7 +11,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
 
-const VACIO = { name: "", price: 0, description: "", includesDiet: false, periodicidadKey: "mensual" };
+const VACIO = { name: "", price: 0, description: "", includesDiet: false, periodicidadKey: "mensual", beneficiosTexto: "" };
 
 export default function PlanesEntrenador() {
   const { token } = useAuth();
@@ -38,7 +38,14 @@ export default function PlanesEntrenador() {
 
   function abrirEditar(plan: PlanAdmin) {
     setEditando(plan);
-    setForm({ name: plan.name, price: plan.price, description: plan.description, includesDiet: plan.includes_diet, periodicidadKey: plan.periodicidad_key });
+    setForm({
+      name: plan.name,
+      price: plan.price,
+      description: plan.description,
+      includesDiet: plan.includes_diet,
+      periodicidadKey: plan.periodicidad_key,
+      beneficiosTexto: (plan.beneficios ?? []).join("\n"),
+    });
   }
 
   function abrirCrear() {
@@ -58,11 +65,17 @@ export default function PlanesEntrenador() {
     setError(null);
     setGuardando(true);
 
+    const beneficios = form.beneficiosTexto
+      .split("\n")
+      .map((linea) => linea.trim())
+      .filter((linea) => linea.length > 0);
+    const payload = { ...form, beneficios };
+
     try {
       if (editando) {
-        await editarPlanEntrenador(token, editando.key, form);
+        await editarPlanEntrenador(token, editando.key, payload);
       } else {
-        await crearPlanEntrenador(token, form);
+        await crearPlanEntrenador(token, payload);
       }
       cerrar();
       cargar();
@@ -114,9 +127,10 @@ export default function PlanesEntrenador() {
                 {" "}/ {periodicidades.find((p) => p.key === plan.periodicidad_key)?.label.toLowerCase() ?? "mes"}
               </span>
             </div>
-            {plan.includes_diet && (
+            {(plan.includes_diet || (plan.beneficios && plan.beneficios.length > 0)) && (
               <ul style={{ margin: "14px 0 0", paddingLeft: 18, color: "#3a4150", lineHeight: 1.9, fontSize: 14 }}>
-                <li>Plan de alimentación incluido</li>
+                {plan.includes_diet && <li>Plan de alimentación incluido</li>}
+                {plan.beneficios?.map((beneficio) => <li key={beneficio}>{beneficio}</li>)}
               </ul>
             )}
             <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
@@ -167,6 +181,14 @@ export default function PlanesEntrenador() {
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="Describe qué incluye este plan"
                 required
+              />
+
+              <label>Beneficios (uno por línea)</label>
+              <textarea
+                value={form.beneficiosTexto}
+                onChange={(e) => setForm({ ...form, beneficiosTexto: e.target.value })}
+                placeholder={"Rutina personalizada con seguimiento\nContacto directo con tu entrenador\nEvaluación mensual de progreso"}
+                rows={4}
               />
 
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

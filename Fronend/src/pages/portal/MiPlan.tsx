@@ -149,6 +149,13 @@ export default function MiPlan() {
           <h2 style={{ fontFamily: "var(--disp)", fontSize: 26, margin: "12px 0 6px", color: "#fff" }}>{plan.name}</h2>
           <p style={{ color: "#aeb4c0", margin: 0, lineHeight: 1.6 }}>{plan.description}</p>
           {goal && <div style={{ color: "#cfd4dd", marginTop: 10, fontSize: 13 }}>Objetivo: {goal.label}</div>}
+          {plan.beneficios.length > 0 && (
+            <ul style={{ margin: "14px 0 0", paddingLeft: 18, color: "#cfd4dd", lineHeight: 1.9, fontSize: 14 }}>
+              {plan.beneficios.map((beneficio) => (
+                <li key={beneficio}>{beneficio}</li>
+              ))}
+            </ul>
+          )}
           <div style={{ fontFamily: "var(--disp)", fontWeight: 700, fontSize: 34, color: "#fff", marginTop: 16 }}>
             {money(plan.price)}
             <span style={{ fontSize: 14, color: "#8b92a0", fontWeight: 500 }}> / mes</span>

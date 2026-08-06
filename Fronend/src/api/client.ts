@@ -120,6 +120,7 @@ export interface Plan {
   price: number;
   includesDiet: boolean;
   description: string;
+  beneficios: string[];
 }
 
 export interface DiaRutina {
@@ -822,6 +823,7 @@ export interface PlanAdmin {
   includes_diet: boolean;
   description: string;
   periodicidad_key: string;
+  beneficios?: string[];
 }
 
 export function obtenerPlanes(token: string) {
@@ -844,11 +846,11 @@ export function obtenerPlanesEntrenador(token: string) {
   return request<{ planes: PlanAdmin[] }>("/api/trainer/plans", "GET", undefined, token);
 }
 
-export function crearPlanEntrenador(token: string, payload: { name: string; price: number; includesDiet: boolean; description: string; periodicidadKey?: string }) {
+export function crearPlanEntrenador(token: string, payload: { name: string; price: number; includesDiet: boolean; description: string; periodicidadKey?: string; beneficios?: string[] }) {
   return request<{ key: string; message: string }>("/api/trainer/plans", "POST", payload, token);
 }
 
-export function editarPlanEntrenador(token: string, key: string, payload: { name: string; price: number; includesDiet: boolean; description: string; periodicidadKey?: string }) {
+export function editarPlanEntrenador(token: string, key: string, payload: { name: string; price: number; includesDiet: boolean; description: string; periodicidadKey?: string; beneficios?: string[] }) {
   return request<{ message: string }>(`/api/trainer/plans/${key}`, "PUT", payload, token);
 }
 

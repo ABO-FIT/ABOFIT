@@ -3,8 +3,16 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { registrarAuditoria } from "@/lib/auditoria";
+import { parsearJson } from "@/lib/json";
 
 const PERIODICIDADES_VALIDAS = ["semanal", "mensual", "trimestral", "semestral", "anual"];
+
+function parsearBeneficios(valor: unknown): string[] | null {
+  if (valor === undefined) return null;
+  if (!Array.isArray(valor)) return null;
+  const limpios = valor.filter((b): b is string => typeof b === "string" && b.trim().length > 0).map((b) => b.trim());
+  return limpios;
+}
 
 async function generarClavePlan(): Promise<string> {
   let clave = "";
@@ -24,9 +32,11 @@ export async function GET(request: Request) {
 
   const planes = await db("plans")
     .where({ trainer_id: sesion.userId })
-    .select("key", "name", "price", "includes_diet", "description", "periodicidad_key");
+    .select("key", "name", "price", "includes_diet", "description", "periodicidad_key", "beneficios");
 
-  return NextResponse.json({ planes });
+  return NextResponse.json({
+    planes: planes.map((p) => ({ ...p, beneficios: p.beneficios ? parsearJson<string[]>(p.beneficios) : [] })),
+  });
 }
 
 export async function POST(request: Request) {
@@ -36,7 +46,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const { name, price, includesDiet, description, periodicidadKey } = (body ?? {}) as Record<string, unknown>;
+  const { name, price, includesDiet, description, periodicidadKey, beneficios } = (body ?? {}) as Record<string, unknown>;
 
   if (typeof name !== "string" || !name.trim()) {
     return NextResponse.json({ error: "El nombre del plan es obligatorio." }, { status: 400 });
@@ -52,6 +62,7 @@ export async function POST(request: Request) {
   }
 
   const periodicidad = typeof periodicidadKey === "string" ? periodicidadKey : "mensual";
+  const listaBeneficios = parsearBeneficios(beneficios) ?? [];
   const nuevaClave = await generarClavePlan();
 
   await db("plans").insert({
@@ -62,6 +73,7 @@ export async function POST(request: Request) {
     description: description.trim(),
     periodicidad_key: periodicidad,
     trainer_id: sesion.userId,
+    beneficios: JSON.stringify(listaBeneficios),
   });
 
   const entrenador = await db("users").where({ id: sesion.userId }).first();
@@ -72,7 +84,7 @@ export async function POST(request: Request) {
     targetId: 0,
     targetNombre: name,
     accion: "crear",
-    despues: { key: nuevaClave, name, price, includesDiet: !!includesDiet, description, periodicidadKey: periodicidad },
+    despues: { key: nuevaClave, name, price, includesDiet: !!includesDiet, description, periodicidadKey: periodicidad, beneficios: listaBeneficios },
   });
 
   return NextResponse.json({ key: nuevaClave, message: "Plan creado correctamente." }, { status: 201 });

@@ -5,6 +5,12 @@ import { registrarAuditoria } from "@/lib/auditoria";
 
 const PERIODICIDADES_VALIDAS = ["semanal", "mensual", "trimestral", "semestral", "anual"];
 
+function parsearBeneficios(valor: unknown): string[] | null {
+  if (valor === undefined) return null;
+  if (!Array.isArray(valor)) return null;
+  return valor.filter((b): b is string => typeof b === "string" && b.trim().length > 0).map((b) => b.trim());
+}
+
 export async function PUT(request: Request, { params }: { params: { key: string } }) {
   const sesion = obtenerSesion(request);
   if (!sesion || sesion.rol !== "Entrenador") {
@@ -17,7 +23,7 @@ export async function PUT(request: Request, { params }: { params: { key: string 
   }
 
   const body = await request.json().catch(() => null);
-  const { name, price, includesDiet, description, periodicidadKey } = (body ?? {}) as Record<string, unknown>;
+  const { name, price, includesDiet, description, periodicidadKey, beneficios } = (body ?? {}) as Record<string, unknown>;
 
   if (typeof name !== "string" || !name.trim() || typeof price !== "number" || price < 0 || typeof description !== "string" || !description.trim()) {
     return NextResponse.json({ error: "Nombre, precio y descripción son obligatorios." }, { status: 400 });
@@ -26,12 +32,15 @@ export async function PUT(request: Request, { params }: { params: { key: string 
     return NextResponse.json({ error: "La periodicidad indicada no es válida." }, { status: 400 });
   }
 
+  const listaBeneficios = parsearBeneficios(beneficios);
+
   const despues = {
     name: name.trim(),
     price,
     includes_diet: !!includesDiet,
     description: description.trim(),
     periodicidad_key: typeof periodicidadKey === "string" ? periodicidadKey : anterior.periodicidad_key,
+    beneficios: JSON.stringify(listaBeneficios ?? []),
   };
   await db("plans").where({ key: params.key }).update(despues);
 

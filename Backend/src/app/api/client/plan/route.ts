@@ -49,7 +49,14 @@ export async function GET(request: Request) {
   return NextResponse.json({
     asignado: true,
     plan: plan
-      ? { key: plan.key, name: plan.name, price: plan.price, includesDiet: !!plan.includes_diet, description: plan.description }
+      ? {
+          key: plan.key,
+          name: plan.name,
+          price: plan.price,
+          includesDiet: !!plan.includes_diet,
+          description: plan.description,
+          beneficios: plan.beneficios ? parsearJson<string[]>(plan.beneficios) : [],
+        }
       : null,
     goal: goal ? { key: goal.key, label: goal.label, shortLabel: goal.short_label, color: goal.color } : null,
     rutina: rutina ? parsearJson(rutina.contenido) : [],
