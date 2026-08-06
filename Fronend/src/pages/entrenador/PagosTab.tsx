@@ -3,6 +3,8 @@ import { cambiarEstadoPago, obtenerPagosCliente, registrarPago, type Pago } from
 import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
 
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+
 const VACIO = { monto: "", concepto: "", fecha: new Date().toISOString().slice(0, 10), estado: "pendiente" as "pagado" | "pendiente" };
 
 export default function PagosTab({ clientId }: { clientId: number }) {
@@ -43,9 +45,14 @@ export default function PagosTab({ clientId }: { clientId: number }) {
 
   async function toggleEstado(pago: Pago) {
     if (!token) return;
+    setError(null);
     const nuevoEstado = pago.estado === "pagado" ? "pendiente" : "pagado";
-    await cambiarEstadoPago(token, clientId, pago.id, nuevoEstado);
-    cargar();
+    try {
+      await cambiarEstadoPago(token, clientId, pago.id, nuevoEstado);
+      cargar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    }
   }
 
   return (
@@ -86,6 +93,11 @@ export default function PagosTab({ clientId }: { clientId: number }) {
             <div>
               <strong>{pago.concepto}</strong>
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>{new Date(pago.fecha).toLocaleDateString("es-DO")} · {money(pago.monto)}</p>
+              {pago.comprobante_path && (
+                <a href={`${API_URL}${pago.comprobante_path}`} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
+                  Ver comprobante
+                </a>
+              )}
             </div>
             <button
               type="button"

@@ -5,6 +5,7 @@ import { agregarAlCarrito, crearPedido, obtenerCatalogo, obtenerMiPlan, type MiP
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import ProductModal from "../../components/ProductModal";
+import PagarPlanModal from "../../components/PagarPlanModal";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -46,6 +47,7 @@ export default function MiPlan() {
   const [recomendados, setRecomendados] = useState<Producto[]>([]);
   const [productoAbierto, setProductoAbierto] = useState<number | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
+  const [pagarPlanAbierto, setPagarPlanAbierto] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -137,8 +139,17 @@ export default function MiPlan() {
             {money(plan.price)}
             <span style={{ fontSize: 14, color: "#8b92a0", fontWeight: 500 }}> / mes</span>
           </div>
+          <button
+            type="button"
+            style={{ marginTop: 16, background: "#fff", color: "var(--ink)" }}
+            onClick={() => setPagarPlanAbierto(true)}
+          >
+            Pagar plan
+          </button>
         </div>
       )}
+
+      {pagarPlanAbierto && <PagarPlanModal onClose={() => setPagarPlanAbierto(false)} />}
 
       {(caloriasObjetivo || proteinaObjetivoG) && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 16 }}>

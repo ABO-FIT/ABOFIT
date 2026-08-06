@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const pagos = await db("payments")
     .where({ client_id: sesion.userId })
     .orderBy("fecha", "desc")
-    .select("id", "monto", "concepto", "fecha", "estado");
+    .select("id", "monto", "concepto", "fecha", "estado", "comprobante_path");
 
   return NextResponse.json({ pagos });
 }

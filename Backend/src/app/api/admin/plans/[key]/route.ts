@@ -15,13 +15,24 @@ export async function PUT(request: Request, { params }: { params: { key: string 
   }
 
   const body = await request.json().catch(() => null);
-  const { name, price, includesDiet, description } = (body ?? {}) as Record<string, unknown>;
+  const { name, price, includesDiet, description, periodicidadKey } = (body ?? {}) as Record<string, unknown>;
 
   if (typeof name !== "string" || !name.trim() || typeof price !== "number" || price < 0 || typeof description !== "string" || !description.trim()) {
     return NextResponse.json({ error: "Nombre, precio y descripción son obligatorios." }, { status: 400 });
   }
 
-  const despues = { name: name.trim(), price, includes_diet: !!includesDiet, description: description.trim() };
+  const periodicidadesValidas = ["semanal", "mensual", "trimestral", "semestral", "anual"];
+  if (periodicidadKey !== undefined && !periodicidadesValidas.includes(periodicidadKey as string)) {
+    return NextResponse.json({ error: "La periodicidad indicada no es válida." }, { status: 400 });
+  }
+
+  const despues = {
+    name: name.trim(),
+    price,
+    includes_diet: !!includesDiet,
+    description: description.trim(),
+    periodicidad_key: typeof periodicidadKey === "string" ? periodicidadKey : anterior.periodicidad_key,
+  };
   await db("plans").where({ key: params.key }).update(despues);
 
   const admin = await db("users").where({ id: sesion.userId }).first();

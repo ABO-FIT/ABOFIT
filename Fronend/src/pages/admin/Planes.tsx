@@ -1,13 +1,14 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { crearPlan, editarPlan, eliminarPlan, obtenerPlanesAdmin, type PlanAdmin } from "../../api/client";
+import { crearPlan, editarPlan, eliminarPlan, obtenerPeriodicidades, obtenerPlanesAdmin, type Periodicidad, type PlanAdmin } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { money } from "../../lib/money";
 
-const VACIO = { name: "", price: 0, description: "", includesDiet: false };
+const VACIO = { name: "", price: 0, description: "", includesDiet: false, periodicidadKey: "mensual" };
 
 export default function Planes() {
   const { token } = useAuth();
   const [planes, setPlanes] = useState<PlanAdmin[]>([]);
+  const [periodicidades, setPeriodicidades] = useState<Periodicidad[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const [editando, setEditando] = useState<PlanAdmin | null>(null);
@@ -23,10 +24,13 @@ export default function Planes() {
   }
 
   useEffect(cargar, [token]);
+  useEffect(() => {
+    obtenerPeriodicidades().then(({ periodicidades }) => setPeriodicidades(periodicidades)).catch(() => {});
+  }, []);
 
   function abrirEditar(plan: PlanAdmin) {
     setEditando(plan);
-    setForm({ name: plan.name, price: plan.price, description: plan.description, includesDiet: plan.includes_diet });
+    setForm({ name: plan.name, price: plan.price, description: plan.description, includesDiet: plan.includes_diet, periodicidadKey: plan.periodicidad_key });
   }
 
   function abrirCrear() {
@@ -95,7 +99,9 @@ export default function Planes() {
             <p style={{ color: "var(--muted)", margin: 0, lineHeight: 1.6 }}>{plan.description}</p>
             <div style={{ fontFamily: "var(--disp)", fontWeight: 700, fontSize: 32, color: "var(--accent2)", marginTop: 14 }}>
               {money(plan.price)}
-              <span style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}> / mes</span>
+              <span style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>
+                {" "}/ {periodicidades.find((p) => p.key === plan.periodicidad_key)?.label.toLowerCase() ?? "mes"}
+              </span>
             </div>
             <ul style={{ margin: "14px 0 0", paddingLeft: 18, color: "#3a4150", lineHeight: 1.9, fontSize: 14 }}>
               <li>Rutina personalizada con seguimiento</li>
@@ -129,13 +135,20 @@ export default function Planes() {
                 required
               />
 
-              <label>Precio mensual (RD$)</label>
+              <label>Precio (RD$)</label>
               <input
                 type="number"
                 value={form.price || ""}
                 onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
                 required
               />
+
+              <label>Periodicidad de cobro</label>
+              <select value={form.periodicidadKey} onChange={(e) => setForm({ ...form, periodicidadKey: e.target.value })}>
+                {periodicidades.map((p) => (
+                  <option key={p.key} value={p.key}>{p.label}</option>
+                ))}
+              </select>
 
               <label>Descripción</label>
               <input

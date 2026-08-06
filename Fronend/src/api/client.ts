@@ -821,6 +821,7 @@ export interface PlanAdmin {
   price: number;
   includes_diet: boolean;
   description: string;
+  periodicidad_key: string;
 }
 
 export function obtenerPlanes() {
@@ -831,12 +832,22 @@ export function obtenerPlanesAdmin(token: string) {
   return request<{ planes: PlanAdmin[] }>("/api/admin/plans", "GET", undefined, token);
 }
 
-export function editarPlan(token: string, key: string, payload: { name: string; price: number; includesDiet: boolean; description: string }) {
+export function editarPlan(token: string, key: string, payload: { name: string; price: number; includesDiet: boolean; description: string; periodicidadKey?: string }) {
   return request<{ message: string }>(`/api/admin/plans/${key}`, "PUT", payload, token);
 }
 
-export function crearPlan(token: string, payload: { name: string; price: number; includesDiet: boolean; description: string }) {
+export function crearPlan(token: string, payload: { name: string; price: number; includesDiet: boolean; description: string; periodicidadKey?: string }) {
   return request<{ key: string; message: string }>("/api/admin/plans", "POST", payload, token);
+}
+
+export interface Periodicidad {
+  key: string;
+  label: string;
+  dias: number;
+}
+
+export function obtenerPeriodicidades() {
+  return request<{ periodicidades: Periodicidad[] }>("/api/periodicidades", "GET");
 }
 
 export function eliminarPlan(token: string, key: string) {
@@ -1055,6 +1066,7 @@ export interface Pago {
   concepto: string;
   fecha: string;
   estado: "pagado" | "pendiente";
+  comprobante_path: string | null;
 }
 
 export function obtenerPagosCliente(token: string, clientId: number) {
@@ -1071,4 +1083,35 @@ export function cambiarEstadoPago(token: string, clientId: number, pagoId: numbe
 
 export function obtenerMisPagos(token: string) {
   return request<{ pagos: Pago[] }>("/api/client/pagos", "GET", undefined, token);
+}
+
+export interface PagoPendienteRespuesta {
+  alDia: boolean;
+  vigenciaHasta: string | null;
+  pago: {
+    id: number;
+    monto: number;
+    concepto: string;
+    fecha: string;
+    estado: "pagado" | "pendiente";
+    comprobantePath: string | null;
+  } | null;
+  entrenador: {
+    nombre: string;
+    apellido: string;
+    bankName: string | null;
+    bankAccount: string | null;
+    bankHolder: string | null;
+    payPhone: string | null;
+  } | null;
+}
+
+export function obtenerPagoPendiente(token: string) {
+  return request<PagoPendienteRespuesta>("/api/client/pagos/pendiente", "GET", undefined, token);
+}
+
+export function subirComprobantePago(token: string, pagoId: number, archivo: File) {
+  const formData = new FormData();
+  formData.append("comprobante", archivo);
+  return request<{ message: string }>(`/api/client/pagos/${pagoId}/comprobante`, "POST", formData, token);
 }

@@ -19,7 +19,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const pagos = await db("payments")
     .where({ client_id: clientId })
     .orderBy("fecha", "desc")
-    .select("id", "monto", "concepto", "fecha", "estado");
+    .select("id", "monto", "concepto", "fecha", "estado", "comprobante_path");
 
   return NextResponse.json({ pagos });
 }
