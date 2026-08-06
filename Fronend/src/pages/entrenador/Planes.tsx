@@ -129,7 +129,7 @@ export default function PlanesEntrenador() {
             </div>
             {(plan.includes_diet || (plan.beneficios && plan.beneficios.length > 0)) && (
               <ul style={{ margin: "14px 0 0", paddingLeft: 18, color: "#3a4150", lineHeight: 1.9, fontSize: 14 }}>
-                {plan.includes_diet && <li>Plan de alimentación incluido</li>}
+                {!!plan.includes_diet && <li>Plan de alimentación incluido</li>}
                 {plan.beneficios?.map((beneficio) => <li key={beneficio}>{beneficio}</li>)}
               </ul>
             )}

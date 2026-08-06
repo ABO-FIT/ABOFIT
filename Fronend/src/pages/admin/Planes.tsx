@@ -107,7 +107,7 @@ export default function Planes() {
               <li>Rutina personalizada con seguimiento</li>
               <li>Registro de progreso y fotos</li>
               <li>Contacto directo con tu entrenador</li>
-              {plan.includes_diet && <li>Plan de alimentación incluido</li>}
+              {!!plan.includes_diet && <li>Plan de alimentación incluido</li>}
             </ul>
             <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
               <button type="button" className="secondary" onClick={() => abrirEditar(plan)}>Editar</button>
