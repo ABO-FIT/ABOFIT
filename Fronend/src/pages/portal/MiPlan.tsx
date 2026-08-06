@@ -1,13 +1,19 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { money } from "../../lib/money";
-import { agregarAlCarrito, crearPedido, obtenerCatalogo, obtenerMiPlan, type MiPlanRespuesta, type Producto } from "../../api/client";
+import { agregarAlCarrito, crearPedido, obtenerCatalogo, obtenerMiPlan, obtenerPagoPendiente, type MiPlanRespuesta, type PagoPendienteRespuesta, type Producto } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import ProductModal from "../../components/ProductModal";
 import PagarPlanModal from "../../components/PagarPlanModal";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+
+function proximoPagoTexto(vigenciaHasta: string): string {
+  const fecha = new Date(vigenciaHasta);
+  fecha.setDate(fecha.getDate() + 1);
+  return fecha.toLocaleDateString("es-DO");
+}
 
 function SeccionDesplegable({ titulo, children }: { titulo: string; children: ReactNode }) {
   const [abierto, setAbierto] = useState(false);
@@ -48,6 +54,7 @@ export default function MiPlan() {
   const [productoAbierto, setProductoAbierto] = useState<number | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [pagarPlanAbierto, setPagarPlanAbierto] = useState(false);
+  const [pagoInfo, setPagoInfo] = useState<PagoPendienteRespuesta | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -55,6 +62,13 @@ export default function MiPlan() {
       .then(setDatos)
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudo cargar tu plan."));
   }, [token]);
+
+  function cargarPagoInfo() {
+    if (!token) return;
+    obtenerPagoPendiente(token).then(setPagoInfo).catch(() => {});
+  }
+
+  useEffect(cargarPagoInfo, [token]);
 
   useEffect(() => {
     if (!datos || !datos.asignado || !datos.goal) return;
@@ -142,14 +156,27 @@ export default function MiPlan() {
           <button
             type="button"
             style={{ marginTop: 16, background: "#fff", color: "var(--ink)" }}
+            disabled={pagoInfo?.alDia === true}
             onClick={() => setPagarPlanAbierto(true)}
           >
             Pagar plan
           </button>
+          {pagoInfo?.alDia && pagoInfo.vigenciaHasta && (
+            <p style={{ margin: "8px 0 0", fontSize: 13, color: "#aeb4c0" }}>
+              Al día · próximo pago el {proximoPagoTexto(pagoInfo.vigenciaHasta)}
+            </p>
+          )}
         </div>
       )}
 
-      {pagarPlanAbierto && <PagarPlanModal onClose={() => setPagarPlanAbierto(false)} />}
+      {pagarPlanAbierto && (
+        <PagarPlanModal
+          onClose={() => {
+            setPagarPlanAbierto(false);
+            cargarPagoInfo();
+          }}
+        />
+      )}
 
       {(caloriasObjetivo || proteinaObjetivoG) && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 16 }}>
