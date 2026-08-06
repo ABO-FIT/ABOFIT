@@ -14,6 +14,7 @@ export default function PagosTab({ clientId }: { clientId: number }) {
   const [error, setError] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
+  const [formAbierto, setFormAbierto] = useState(false);
 
   function cargar() {
     if (!token) return;
@@ -35,6 +36,7 @@ export default function PagosTab({ clientId }: { clientId: number }) {
       const respuesta = await registrarPago(token, clientId, { ...form, monto: Number(form.monto) });
       setMensaje(respuesta.message);
       setForm(VACIO);
+      setFormAbierto(false);
       cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
@@ -57,32 +59,43 @@ export default function PagosTab({ clientId }: { clientId: number }) {
 
   return (
     <div className="card">
-      <h2>Pagos de mensualidad</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2 style={{ margin: 0 }}>Pagos de mensualidad</h2>
+        <button type="button" className="secondary" onClick={() => setFormAbierto((v) => !v)}>
+          {formAbierto ? "Cancelar" : "Registrar pago manual"}
+        </button>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 8, alignItems: "end" }}>
-          <div>
-            <label>Concepto</label>
-            <input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} placeholder="Mensualidad agosto" required />
+      {formAbierto && (
+        <form onSubmit={handleSubmit} style={{ marginTop: 12 }}>
+          <p style={{ margin: "0 0 8px", fontSize: 13, color: "var(--muted)" }}>
+            Usa esto solo para pagos recibidos fuera del sistema (efectivo, transferencia directa, etc.). Los cobros
+            del plan se generan automáticamente y el cliente puede pagarlos desde su perfil.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 8, alignItems: "end" }}>
+            <div>
+              <label>Concepto</label>
+              <input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} placeholder="Mensualidad agosto" required />
+            </div>
+            <div>
+              <label>Monto (RD$)</label>
+              <input type="number" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required />
+            </div>
+            <div>
+              <label>Fecha</label>
+              <input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} required />
+            </div>
+            <div>
+              <label>Estado</label>
+              <select value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value as "pagado" | "pendiente" })}>
+                <option value="pendiente">Pendiente</option>
+                <option value="pagado">Pagado</option>
+              </select>
+            </div>
+            <button type="submit" disabled={guardando}>{guardando ? "Guardando..." : "Registrar"}</button>
           </div>
-          <div>
-            <label>Monto (RD$)</label>
-            <input type="number" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} required />
-          </div>
-          <div>
-            <label>Fecha</label>
-            <input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} required />
-          </div>
-          <div>
-            <label>Estado</label>
-            <select value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value as "pagado" | "pendiente" })}>
-              <option value="pendiente">Pendiente</option>
-              <option value="pagado">Pagado</option>
-            </select>
-          </div>
-          <button type="submit" disabled={guardando}>{guardando ? "Guardando..." : "Registrar"}</button>
-        </div>
-      </form>
+        </form>
+      )}
 
       {mensaje && <p role="status" style={{ marginTop: 8 }}>{mensaje}</p>}
       {error && <p role="alert" style={{ marginTop: 8 }}>{error}</p>}
