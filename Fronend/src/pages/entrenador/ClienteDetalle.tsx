@@ -96,7 +96,8 @@ export default function ClienteDetalle() {
   useEffect(cargar, [token, clientId]);
   useEffect(() => {
     obtenerObjetivos(token).then(({ goals }) => setObjetivos(goals)).catch(() => {});
-    obtenerPlanes().then(({ planes }) => setPlanes(planes)).catch(() => {});
+    if (!token) return;
+    obtenerPlanes(token).then(({ planes }) => setPlanes(planes)).catch(() => {});
   }, [token]);
 
   async function handleGuardarEvaluacion() {

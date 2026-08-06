@@ -5,7 +5,6 @@ import { obtenerSesion } from "@/lib/auth";
 import { enviarCorreoDefinirPassword } from "@/lib/email";
 
 const USUARIO_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
-const PLANES_VALIDOS = ["A", "B"];
 const OBJETIVOS_VALIDOS = ["masa", "grasa", "mantenimiento", "rendimiento"];
 const TOKEN_VIGENCIA_HORAS = 24;
 
@@ -50,8 +49,19 @@ export async function POST(request: Request) {
     );
   }
 
-  if (typeof planKey !== "string" || !PLANES_VALIDOS.includes(planKey)) {
-    return NextResponse.json({ error: "El plan debe ser A o B." }, { status: 400 });
+  if (typeof planKey !== "string" || !planKey.trim()) {
+    return NextResponse.json({ error: "El plan es obligatorio." }, { status: 400 });
+  }
+
+  const plan = await db("plans")
+    .where({ key: planKey })
+    .andWhere((builder) => {
+      builder.whereNull("trainer_id").orWhere("trainer_id", sesion.userId);
+    })
+    .first();
+
+  if (!plan) {
+    return NextResponse.json({ error: "El plan indicado no es válido." }, { status: 400 });
   }
 
   if (typeof goalKey !== "string" || !OBJETIVOS_VALIDOS.includes(goalKey)) {

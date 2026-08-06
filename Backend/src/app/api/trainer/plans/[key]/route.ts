@@ -3,14 +3,16 @@ import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { registrarAuditoria } from "@/lib/auditoria";
 
+const PERIODICIDADES_VALIDAS = ["semanal", "mensual", "trimestral", "semestral", "anual"];
+
 export async function PUT(request: Request, { params }: { params: { key: string } }) {
   const sesion = obtenerSesion(request);
-  if (!sesion || sesion.rol !== "Administrador") {
+  if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
   const anterior = await db("plans").where({ key: params.key }).first();
-  if (!anterior || anterior.trainer_id !== null) {
+  if (!anterior || anterior.trainer_id !== sesion.userId) {
     return NextResponse.json({ error: "Plan no encontrado." }, { status: 404 });
   }
 
@@ -20,9 +22,7 @@ export async function PUT(request: Request, { params }: { params: { key: string 
   if (typeof name !== "string" || !name.trim() || typeof price !== "number" || price < 0 || typeof description !== "string" || !description.trim()) {
     return NextResponse.json({ error: "Nombre, precio y descripción son obligatorios." }, { status: 400 });
   }
-
-  const periodicidadesValidas = ["semanal", "mensual", "trimestral", "semestral", "anual"];
-  if (periodicidadKey !== undefined && !periodicidadesValidas.includes(periodicidadKey as string)) {
+  if (periodicidadKey !== undefined && !PERIODICIDADES_VALIDAS.includes(periodicidadKey as string)) {
     return NextResponse.json({ error: "La periodicidad indicada no es válida." }, { status: 400 });
   }
 
@@ -35,10 +35,10 @@ export async function PUT(request: Request, { params }: { params: { key: string 
   };
   await db("plans").where({ key: params.key }).update(despues);
 
-  const admin = await db("users").where({ id: sesion.userId }).first();
+  const entrenador = await db("users").where({ id: sesion.userId }).first();
   await registrarAuditoria({
     adminId: sesion.userId,
-    adminNombre: `${admin.nombre} ${admin.apellido}`,
+    adminNombre: `${entrenador.nombre} ${entrenador.apellido}`,
     targetType: "plan",
     targetId: 0,
     targetNombre: `Plan ${params.key}`,
@@ -52,12 +52,12 @@ export async function PUT(request: Request, { params }: { params: { key: string 
 
 export async function DELETE(request: Request, { params }: { params: { key: string } }) {
   const sesion = obtenerSesion(request);
-  if (!sesion || sesion.rol !== "Administrador") {
+  if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
   const plan = await db("plans").where({ key: params.key }).first();
-  if (!plan || plan.trainer_id !== null) {
+  if (!plan || plan.trainer_id !== sesion.userId) {
     return NextResponse.json({ error: "Plan no encontrado." }, { status: 404 });
   }
 
@@ -68,10 +68,10 @@ export async function DELETE(request: Request, { params }: { params: { key: stri
 
   await db("plans").where({ key: params.key }).delete();
 
-  const admin = await db("users").where({ id: sesion.userId }).first();
+  const entrenador = await db("users").where({ id: sesion.userId }).first();
   await registrarAuditoria({
     adminId: sesion.userId,
-    adminNombre: `${admin.nombre} ${admin.apellido}`,
+    adminNombre: `${entrenador.nombre} ${entrenador.apellido}`,
     targetType: "plan",
     targetId: 0,
     targetNombre: plan.name,

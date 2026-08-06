@@ -1,26 +1,37 @@
+import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { registrarAuditoria } from "@/lib/auditoria";
 
-const LETRAS_DISPONIBLES = "CDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const PERIODICIDADES_VALIDAS = ["semanal", "mensual", "trimestral", "semestral", "anual"];
+
+async function generarClavePlan(): Promise<string> {
+  let clave = "";
+  let existe = true;
+  while (existe) {
+    clave = randomBytes(4).toString("hex");
+    existe = !!(await db("plans").where({ key: clave }).first());
+  }
+  return clave;
+}
 
 export async function GET(request: Request) {
   const sesion = obtenerSesion(request);
-  if (!sesion || sesion.rol !== "Administrador") {
+  if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
   const planes = await db("plans")
-    .whereNull("trainer_id")
+    .where({ trainer_id: sesion.userId })
     .select("key", "name", "price", "includes_diet", "description", "periodicidad_key");
+
   return NextResponse.json({ planes });
 }
 
 export async function POST(request: Request) {
   const sesion = obtenerSesion(request);
-  if (!sesion || sesion.rol !== "Administrador") {
+  if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
@@ -40,15 +51,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "La periodicidad indicada no es válida." }, { status: 400 });
   }
 
-  const existentes = await db("plans").select("key");
-  const clavesExistentes = new Set(existentes.map((p) => p.key));
-  const nuevaClave = LETRAS_DISPONIBLES.find((letra) => !clavesExistentes.has(letra));
-
-  if (!nuevaClave) {
-    return NextResponse.json({ error: "No hay más claves disponibles para nuevos planes." }, { status: 409 });
-  }
-
   const periodicidad = typeof periodicidadKey === "string" ? periodicidadKey : "mensual";
+  const nuevaClave = await generarClavePlan();
 
   await db("plans").insert({
     key: nuevaClave,
@@ -57,12 +61,13 @@ export async function POST(request: Request) {
     includes_diet: !!includesDiet,
     description: description.trim(),
     periodicidad_key: periodicidad,
+    trainer_id: sesion.userId,
   });
 
-  const admin = await db("users").where({ id: sesion.userId }).first();
+  const entrenador = await db("users").where({ id: sesion.userId }).first();
   await registrarAuditoria({
     adminId: sesion.userId,
-    adminNombre: `${admin.nombre} ${admin.apellido}`,
+    adminNombre: `${entrenador.nombre} ${entrenador.apellido}`,
     targetType: "plan",
     targetId: 0,
     targetNombre: name,

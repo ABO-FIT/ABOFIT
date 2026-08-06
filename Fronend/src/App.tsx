@@ -12,6 +12,7 @@ import MiNutricion from "./pages/portal/MiNutricion";
 import ContactoEntrenador from "./pages/portal/ContactoEntrenador";
 import PanelEntrenador from "./pages/entrenador/Panel";
 import MisClientes from "./pages/entrenador/MisClientes";
+import PlanesEntrenador from "./pages/entrenador/Planes";
 import ClienteDetalle from "./pages/entrenador/ClienteDetalle";
 import Mensajes from "./pages/entrenador/Mensajes";
 import Alertas from "./pages/entrenador/Alertas";
@@ -84,6 +85,7 @@ export default function App() {
         <Route path="reportes" element={<ReportesEntrenador />} />
         <Route path="clientes" element={<MisClientes />} />
         <Route path="clientes/:id" element={<ClienteDetalle />} />
+        <Route path="planes" element={<PlanesEntrenador />} />
         <Route path="mensajes" element={<Mensajes />} />
         <Route path="catalogo" element={<Catalogo />} />
         <Route path="carrito" element={<Carrito />} />

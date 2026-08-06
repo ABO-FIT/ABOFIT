@@ -63,7 +63,8 @@ export default function MisClientes() {
         setNuevoCliente((n) => ({ ...n, goalKey: n.goalKey || goals[0].key }));
       }
     }).catch(() => {});
-    obtenerPlanes().then(({ planes }) => {
+    if (!token) return;
+    obtenerPlanes(token).then(({ planes }) => {
       setPlanes(planes);
       if (planes.length > 0) {
         setPlanAsignar((actual) => actual || planes[0].key);

@@ -824,8 +824,8 @@ export interface PlanAdmin {
   periodicidad_key: string;
 }
 
-export function obtenerPlanes() {
-  return request<{ planes: PlanAdmin[] }>("/api/plans", "GET");
+export function obtenerPlanes(token: string) {
+  return request<{ planes: PlanAdmin[] }>("/api/plans", "GET", undefined, token);
 }
 
 export function obtenerPlanesAdmin(token: string) {
@@ -838,6 +838,22 @@ export function editarPlan(token: string, key: string, payload: { name: string; 
 
 export function crearPlan(token: string, payload: { name: string; price: number; includesDiet: boolean; description: string; periodicidadKey?: string }) {
   return request<{ key: string; message: string }>("/api/admin/plans", "POST", payload, token);
+}
+
+export function obtenerPlanesEntrenador(token: string) {
+  return request<{ planes: PlanAdmin[] }>("/api/trainer/plans", "GET", undefined, token);
+}
+
+export function crearPlanEntrenador(token: string, payload: { name: string; price: number; includesDiet: boolean; description: string; periodicidadKey?: string }) {
+  return request<{ key: string; message: string }>("/api/trainer/plans", "POST", payload, token);
+}
+
+export function editarPlanEntrenador(token: string, key: string, payload: { name: string; price: number; includesDiet: boolean; description: string; periodicidadKey?: string }) {
+  return request<{ message: string }>(`/api/trainer/plans/${key}`, "PUT", payload, token);
+}
+
+export function eliminarPlanEntrenador(token: string, key: string) {
+  return request<{ message: string }>(`/api/trainer/plans/${key}`, "DELETE", undefined, token);
 }
 
 export interface Periodicidad {
