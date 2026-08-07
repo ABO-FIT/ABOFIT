@@ -2,6 +2,7 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["knex", "mysql2"],
+    instrumentationHook: true,
   },
 };
 

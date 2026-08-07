@@ -8,7 +8,8 @@
     "start": "next start",
     "migrate": "knex --knexfile src/db/knexfile.ts migrate:latest",
     "migrate:rollback": "knex --knexfile src/db/knexfile.ts migrate:rollback",
-    "seed": "knex --knexfile src/db/knexfile.ts seed:run"
+    "seed": "knex --knexfile src/db/knexfile.ts seed:run",
+    "test": "vitest run"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -16,6 +17,7 @@
     "knex": "^3.1.0",
     "mysql2": "^3.11.0",
     "next": "^14.2.5",
+    "node-cron": "^4.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "sharp": "^0.35.3"
@@ -24,9 +26,11 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20.14.9",
+    "@types/node-cron": "^3.0.11",
     "@types/react": "^18.3.3",
     "dotenv": "^16.4.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "vitest": "^4.1.10"
   }
 }

@@ -7,6 +7,7 @@ function formatoFecha(fecha: Date): string {
 export interface ResultadoPagoPendiente {
   alDia: boolean;
   vigenciaHasta: string | null;
+  creado: boolean;
   pago: {
     id: number;
     monto: number;
@@ -27,6 +28,7 @@ export async function obtenerOCrearPagoPendiente(clientId: number): Promise<Resu
     return {
       alDia: false,
       vigenciaHasta: null,
+      creado: false,
       pago: {
         id: pendiente.id,
         monto: pendiente.monto,
@@ -60,7 +62,7 @@ export async function obtenerOCrearPagoPendiente(clientId: number): Promise<Resu
   const hoy = new Date();
 
   if (ultimoPago?.estado === "pagado" && ultimoPago.periodo_fin && new Date(ultimoPago.periodo_fin) >= hoy) {
-    return { alDia: true, vigenciaHasta: ultimoPago.periodo_fin, pago: null };
+    return { alDia: true, vigenciaHasta: ultimoPago.periodo_fin, creado: false, pago: null };
   }
 
   let periodoInicio: Date;
@@ -94,6 +96,7 @@ export async function obtenerOCrearPagoPendiente(clientId: number): Promise<Resu
   return {
     alDia: false,
     vigenciaHasta: null,
+    creado: true,
     pago: {
       id: nuevo.id,
       monto: nuevo.monto,
