@@ -46,7 +46,7 @@ export default function Reportes() {
       <h2>Productos más vendidos</h2>
       <div style={{ display: "grid", gap: 8 }}>
         {datos.topProductos.map((p) => (
-          <div key={p.name} className="card" style={{ display: "flex", justifyContent: "space-between" }}>
+          <div key={p.name} className="card" style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
             <span>{p.name}</span>
             <strong>{p.cantidad} unidades</strong>
           </div>

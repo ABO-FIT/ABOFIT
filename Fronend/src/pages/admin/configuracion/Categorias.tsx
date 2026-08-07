@@ -74,7 +74,7 @@ export default function ConfigCategorias() {
 
         <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
           {categorias.map((c) => (
-            <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+            <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)", flexWrap: "wrap", gap: 8 }}>
               {editandoCategoria?.id === c.id ? (
                 <input
                   value={editandoCategoria.name}

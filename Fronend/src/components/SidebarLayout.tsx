@@ -25,10 +25,15 @@ export default function SidebarLayout({ enlaces }: { enlaces: EnlaceNav[] }) {
 
   const grupoActivoPorRuta = enlaces.find((e) => e.hijos?.some((h) => location.pathname.startsWith(h.to)))?.label ?? null;
   const [grupoAbierto, setGrupoAbierto] = useState<string | null>(grupoActivoPorRuta);
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   useEffect(() => {
     if (grupoActivoPorRuta) setGrupoAbierto(grupoActivoPorRuta);
   }, [grupoActivoPorRuta]);
+
+  useEffect(() => {
+    setMenuAbierto(false);
+  }, [location.pathname]);
 
   function toggleGrupo(label: string) {
     setGrupoAbierto((actual) => (actual === label ? null : label));
@@ -36,7 +41,8 @@ export default function SidebarLayout({ enlaces }: { enlaces: EnlaceNav[] }) {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      <div className={`sidebar-overlay ${menuAbierto ? "open" : ""}`} onClick={() => setMenuAbierto(false)} />
+      <aside className={`sidebar ${menuAbierto ? "open" : ""}`}>
         <div className="sidebar-logo">
           <img src={logo} alt="ABOFIT" />
           <span className="brand-sub">Training System</span>
@@ -89,6 +95,9 @@ export default function SidebarLayout({ enlaces }: { enlaces: EnlaceNav[] }) {
 
       <div className="content-area">
         <div className="topbar">
+          <button type="button" className="menu-toggle" aria-label="Abrir menú" onClick={() => setMenuAbierto((v) => !v)}>
+            <MenuSVG />
+          </button>
           <NotificationBell />
           {(base === "/portal" || base === "/entrenador") && (
             <Link to={`${base}/carrito`} className="top-icon" aria-label="Carrito" style={{ position: "relative" }}>
@@ -119,6 +128,16 @@ export default function SidebarLayout({ enlaces }: { enlaces: EnlaceNav[] }) {
         <Outlet />
       </div>
     </div>
+  );
+}
+
+function MenuSVG() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
   );
 }
 

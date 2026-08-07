@@ -156,7 +156,7 @@ export default function CatalogoAdmin() {
 
   return (
     <main className="wide">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
         <div>
           <span className="eyebrow">Suplementos ABOFIT</span>
           <h1>Suplementos</h1>

@@ -59,7 +59,7 @@ export default function Mensajes() {
     <main className="wide">
       <h1>Mensajes</h1>
 
-      <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: 16 }}>
+      <div className="split-panel">
         <div style={{ display: "grid", gap: 8 }}>
           {clientes.map((cliente) => (
             <button

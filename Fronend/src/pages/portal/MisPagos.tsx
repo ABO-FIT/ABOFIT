@@ -30,7 +30,7 @@ export default function MisPagos() {
 
       <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
         {pagos.map((pago) => (
-          <div key={pago.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div key={pago.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
             <div>
               <strong>{pago.concepto}</strong>
               <p style={{ margin: 0, color: "var(--muted)" }}>

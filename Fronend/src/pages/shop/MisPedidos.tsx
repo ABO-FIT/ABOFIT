@@ -102,7 +102,7 @@ export default function MisPedidos() {
       <div style={{ display: "grid", gap: 12 }}>
         {pedidos.map((pedido) => (
           <div key={pedido.id} className="card" style={{ width: "fit-content", minWidth: 280, maxWidth: "100%" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 24 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
               <strong>Pedido #{pedido.id}</strong>
               <span className="tag" style={{ background: "var(--line)" }}>{ESTADOS[pedido.estado]}</span>
             </div>

@@ -67,7 +67,7 @@ export default function ConfigObjetivos() {
 
       <div className="card">
         <form onSubmit={handleSubmit}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 8, alignItems: "end" }}>
+          <div className="form-grid-3">
             <div>
               <label>Clave</label>
               <input
@@ -105,7 +105,7 @@ export default function ConfigObjetivos() {
 
         <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
           {objetivos.map((g) => (
-            <div key={g.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+            <div key={g.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)", flexWrap: "wrap", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ width: 14, height: 14, borderRadius: "50%", background: g.color, display: "inline-block" }} />
                 <strong>{g.label}</strong>

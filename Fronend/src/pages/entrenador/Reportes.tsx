@@ -64,7 +64,7 @@ export default function Reportes() {
       <h2>Evolución destacada</h2>
       <div style={{ display: "grid", gap: 10 }}>
         {datos.topEvolucion.map((e) => (
-          <div key={e.clienteId} className="card" style={{ display: "flex", justifyContent: "space-between" }}>
+          <div key={e.clienteId} className="card" style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
             <div>
               <strong>{e.nombre}</strong>
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>

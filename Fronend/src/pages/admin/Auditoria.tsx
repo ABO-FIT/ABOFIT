@@ -23,7 +23,7 @@ export default function Auditoria() {
       <div style={{ display: "grid", gap: 8 }}>
         {registros.map((r) => (
           <div key={r.id} className="card">
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
               <strong>{r.admin_nombre}</strong>
               <span style={{ color: "var(--muted)", fontSize: 13 }}>{new Date(r.created_at).toLocaleString("es-DO")}</span>
             </div>

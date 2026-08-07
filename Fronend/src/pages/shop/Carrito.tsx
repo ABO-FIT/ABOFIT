@@ -156,7 +156,7 @@ export default function Carrito() {
       </div>
 
       {items.length > 0 && (
-        <div className="card" style={{ marginTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div className="card" style={{ marginTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
           <strong style={{ fontSize: 20 }}>Total: {money(total)}</strong>
           <button type="button" onClick={handleCheckout} disabled={procesando}>
             {procesando ? "Procesando..." : "Confirmar pedido"}

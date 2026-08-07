@@ -116,7 +116,7 @@ export default function FacturaModal({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" style={{ maxWidth: 720, padding: 0 }} onClick={(e) => e.stopPropagation()}>
         {detalle && (
-          <div style={{ padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--line)" }}>
+          <div style={{ padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--line)", flexWrap: "wrap", gap: 8 }}>
             <div style={{ fontWeight: 700, fontSize: 16 }}>Factura {detalle.factura.numero}</div>
             <div style={{ display: "flex", gap: 8 }}>
               <button type="button" style={{ padding: "8px 13px", fontSize: 13, borderRadius: 9 }} onClick={handlePrint}>

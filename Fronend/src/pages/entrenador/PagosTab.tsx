@@ -59,7 +59,7 @@ export default function PagosTab({ clientId }: { clientId: number }) {
 
   return (
     <div className="card">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
         <h2 style={{ margin: 0 }}>Pagos de mensualidad</h2>
         <button type="button" className="secondary" onClick={() => setFormAbierto((v) => !v)}>
           {formAbierto ? "Cancelar" : "Registrar pago manual"}
@@ -72,7 +72,7 @@ export default function PagosTab({ clientId }: { clientId: number }) {
             Usa esto solo para pagos recibidos fuera del sistema (efectivo, transferencia directa, etc.). Los cobros
             del plan se generan automáticamente y el cliente puede pagarlos desde su perfil.
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: 8, alignItems: "end" }}>
+          <div className="form-grid-4">
             <div>
               <label>Concepto</label>
               <input value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value })} placeholder="Mensualidad agosto" required />
@@ -102,7 +102,7 @@ export default function PagosTab({ clientId }: { clientId: number }) {
 
       <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
         {pagos.map((pago) => (
-          <div key={pago.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+          <div key={pago.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)", flexWrap: "wrap", gap: 8 }}>
             <div>
               <strong>{pago.concepto}</strong>
               <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>{new Date(pago.fecha).toLocaleDateString("es-DO")} · {money(pago.monto)}</p>

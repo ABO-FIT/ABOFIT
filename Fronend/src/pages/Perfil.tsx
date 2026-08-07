@@ -138,7 +138,7 @@ export default function Perfil() {
 
   return (
     <main className="wide">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
         <h1 style={{ margin: 0 }}>Perfil</h1>
         {!edit ? (
           <button type="button" className="secondary" onClick={() => setEdit(true)}>Editar</button>

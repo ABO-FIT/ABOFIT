@@ -41,7 +41,7 @@ export default function MisFacturas() {
             key={factura.id}
             type="button"
             className="card"
-            style={{ display: "flex", justifyContent: "space-between", textAlign: "left", width: "100%" }}
+            style={{ display: "flex", justifyContent: "space-between", textAlign: "left", width: "100%", flexWrap: "wrap", gap: 8 }}
             onClick={() => setFacturaAbierta(factura.id)}
           >
             <div>

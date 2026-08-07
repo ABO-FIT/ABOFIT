@@ -79,7 +79,7 @@ export default function Gimnasios() {
 
       <div style={{ display: "grid", gap: 8 }}>
         {gimnasios.map((g) => (
-          <div key={g.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div key={g.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
             <div>
               <strong>{g.name}</strong>
               <p style={{ margin: 0, color: "var(--muted)" }}>{g.city} {g.address ? `· ${g.address}` : ""} {g.phone ? `· ${g.phone}` : ""}</p>

@@ -71,7 +71,7 @@ export default function MisRutinas() {
           const completado = completados.includes(dia.id);
           return (
             <div key={dia.id} className="card">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                 <strong>
                   {dia.day} — {dia.focus}
                 </strong>

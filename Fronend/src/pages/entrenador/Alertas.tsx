@@ -32,7 +32,7 @@ export default function Alertas() {
       <div style={{ display: "grid", gap: 12 }}>
         {alertas.map((alerta) => (
           <div key={alerta.clienteId} className="card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
               <div>
                 <strong>{alerta.nombre}</strong>
                 <p style={{ margin: 0, color: "var(--muted)" }}>@{alerta.usuario}</p>

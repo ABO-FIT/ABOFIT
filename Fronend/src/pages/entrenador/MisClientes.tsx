@@ -155,7 +155,7 @@ export default function MisClientes() {
           </p>
           <div style={{ display: "grid", gap: 8 }}>
             {clientesSinAsignar.map((cliente) => (
-              <div key={cliente.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+              <div key={cliente.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)", flexWrap: "wrap", gap: 8 }}>
                 <div>
                   <strong>{cliente.nombre} {cliente.apellido}</strong>
                   <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>@{cliente.usuario} · {cliente.correo}</p>
@@ -275,7 +275,7 @@ export default function MisClientes() {
         {clientes
           .filter((cliente) => !filtroGoal || cliente.goal_key === filtroGoal)
           .map((cliente) => (
-            <Link key={cliente.id} to={`/entrenador/clientes/${cliente.id}`} className="card" style={{ textDecoration: "none", color: "inherit", display: "flex", justifyContent: "space-between" }}>
+            <Link key={cliente.id} to={`/entrenador/clientes/${cliente.id}`} className="card" style={{ textDecoration: "none", color: "inherit", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
               <div>
                 <strong>{cliente.nombre} {cliente.apellido}</strong>
                 <p style={{ margin: 0, color: "var(--muted)" }}>@{cliente.usuario} · {cliente.correo}</p>

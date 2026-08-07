@@ -80,7 +80,7 @@ export default function MiNutricion() {
 
       <div style={{ display: "grid", gap: 12 }}>
         {registros.map((registro) => (
-          <div key={registro.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div key={registro.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
             <div>
               <span className="tag">{TIPOS.find((t) => t.key === registro.tipo)?.label ?? registro.tipo}</span>
               <p style={{ margin: "6px 0 0" }}>{registro.descripcion}</p>
