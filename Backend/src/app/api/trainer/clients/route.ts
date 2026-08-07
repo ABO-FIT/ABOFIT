@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { obtenerPorcentajeSemana } from "@/lib/rutinaEstado";
 
-const PLANES_VALIDOS = ["A", "B"];
 const OBJETIVOS_VALIDOS = ["masa", "grasa", "mantenimiento", "rendimiento"];
 
 export async function GET(request: Request) {
@@ -51,8 +50,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "El usuario del cliente es obligatorio." }, { status: 400 });
   }
 
-  if (typeof planKey !== "string" || !PLANES_VALIDOS.includes(planKey)) {
-    return NextResponse.json({ error: "El plan debe ser A o B." }, { status: 400 });
+  if (typeof planKey !== "string" || !planKey.trim()) {
+    return NextResponse.json({ error: "El plan es obligatorio." }, { status: 400 });
+  }
+
+  const plan = await db("plans")
+    .where({ key: planKey })
+    .andWhere((builder) => {
+      builder.whereNull("trainer_id").orWhere("trainer_id", sesion.userId);
+    })
+    .first();
+
+  if (!plan) {
+    return NextResponse.json({ error: "El plan indicado no es válido." }, { status: 400 });
   }
 
   if (typeof goalKey !== "string" || !OBJETIVOS_VALIDOS.includes(goalKey)) {
