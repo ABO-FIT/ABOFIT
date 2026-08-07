@@ -110,7 +110,7 @@ export default function PlanesEntrenador() {
         <button type="button" onClick={abrirCrear}>+ Nuevo plan</button>
       </div>
 
-      <p style={{ color: "var(--muted)", marginTop: -8 }}>
+      <p style={{ color: "var(--muted)", marginTop: 8 }}>
         Define tus propios planes, precios y periodicidad de cobro. Estos planes solo los ves tú y tus clientes.
       </p>
 
