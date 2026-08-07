@@ -310,6 +310,19 @@ export function asignarCliente(token: string, usuario: string, planKey: string, 
   return request<{ message: string }>("/api/trainer/clients", "POST", { usuario, planKey, goalKey }, token);
 }
 
+export interface ClienteSinAsignar {
+  id: number;
+  nombre: string;
+  apellido: string;
+  usuario: string;
+  correo: string;
+  created_at: string;
+}
+
+export function obtenerClientesSinAsignar(token: string) {
+  return request<{ clientes: ClienteSinAsignar[] }>("/api/trainer/clients/sin-asignar", "GET", undefined, token);
+}
+
 export interface NuevoClientePayload {
   nombre: string;
   apellido: string;

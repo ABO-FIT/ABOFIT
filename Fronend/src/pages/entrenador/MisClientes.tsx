@@ -4,11 +4,13 @@ import {
   asignarCliente,
   buscarCliente,
   crearClienteDirecto,
+  obtenerClientesSinAsignar,
   obtenerMisClientes,
   obtenerObjetivos,
   obtenerPlanes,
   type ClienteBuscado,
   type ClienteResumen,
+  type ClienteSinAsignar,
   type GoalAdmin,
   type NuevoClientePayload,
   type PlanAdmin,
@@ -32,6 +34,7 @@ export default function MisClientes() {
   const [error, setError] = useState<string | null>(null);
 
   const [filtroGoal, setFiltroGoal] = useState("");
+  const [clientesSinAsignar, setClientesSinAsignar] = useState<ClienteSinAsignar[]>([]);
 
   const [mostrarBuscar, setMostrarBuscar] = useState(false);
   const [usuarioBuscado, setUsuarioBuscado] = useState("");
@@ -54,7 +57,15 @@ export default function MisClientes() {
       .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar tus clientes."));
   }
 
+  function cargarSinAsignar() {
+    if (!token) return;
+    obtenerClientesSinAsignar(token)
+      .then(({ clientes }) => setClientesSinAsignar(clientes))
+      .catch(() => {});
+  }
+
   useEffect(cargar, [token]);
+  useEffect(cargarSinAsignar, [token]);
   useEffect(() => {
     obtenerObjetivos(token).then(({ goals }) => {
       setObjetivos(goals);
@@ -97,11 +108,19 @@ export default function MisClientes() {
       setUsuarioBuscado("");
       setMostrarBuscar(false);
       cargar();
+      cargarSinAsignar();
     } catch (err) {
       setErrorBuscar(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
     } finally {
       setGuardando(false);
     }
+  }
+
+  function handleReclamar(cliente: ClienteSinAsignar) {
+    setEncontrado({ id: cliente.id, nombre: cliente.nombre, apellido: cliente.apellido, usuario: cliente.usuario, correo: cliente.correo, yaEsMio: false });
+    setUsuarioBuscado(cliente.usuario);
+    setErrorBuscar(null);
+    setMostrarBuscar(true);
   }
 
   async function handleCrearNuevo(event: FormEvent) {
@@ -127,6 +146,26 @@ export default function MisClientes() {
   return (
     <main className="wide">
       <h1>Mis Clientes</h1>
+
+      {clientesSinAsignar.length > 0 && (
+        <div className="card" style={{ marginBottom: 16, borderColor: "var(--accent2)" }}>
+          <h3 style={{ margin: "0 0 4px" }}>Clientes sin asignar</h3>
+          <p style={{ margin: "0 0 12px", color: "var(--muted)", fontSize: 13 }}>
+            Se registraron por su cuenta y aún no tienen entrenador. Asígnalos a tu cartera.
+          </p>
+          <div style={{ display: "grid", gap: 8 }}>
+            {clientesSinAsignar.map((cliente) => (
+              <div key={cliente.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+                <div>
+                  <strong>{cliente.nombre} {cliente.apellido}</strong>
+                  <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>@{cliente.usuario} · {cliente.correo}</p>
+                </div>
+                <button type="button" onClick={() => handleReclamar(cliente)}>Asignar</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
         <button type="button" onClick={() => setMostrarBuscar((v) => !v)}>
