@@ -95,7 +95,13 @@ export default function SidebarLayout({ enlaces }: { enlaces: EnlaceNav[] }) {
 
       <div className="content-area">
         <div className="topbar">
-          <button type="button" className="menu-toggle" aria-label="Abrir menú" onClick={() => setMenuAbierto((v) => !v)}>
+          <button
+            type="button"
+            className="menu-toggle"
+            aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={menuAbierto}
+            onClick={() => setMenuAbierto((v) => !v)}
+          >
             <MenuSVG />
           </button>
           <NotificationBell />

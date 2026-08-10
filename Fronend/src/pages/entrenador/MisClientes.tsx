@@ -35,6 +35,8 @@ export default function MisClientes() {
 
   const [filtroGoal, setFiltroGoal] = useState("");
   const [clientesSinAsignar, setClientesSinAsignar] = useState<ClienteSinAsignar[]>([]);
+  const [errorSinAsignar, setErrorSinAsignar] = useState<string | null>(null);
+  const [cargado, setCargado] = useState(false);
 
   const [mostrarBuscar, setMostrarBuscar] = useState(false);
   const [usuarioBuscado, setUsuarioBuscado] = useState("");
@@ -54,14 +56,16 @@ export default function MisClientes() {
     if (!token) return;
     obtenerMisClientes(token)
       .then(({ clientes }) => setClientes(clientes))
-      .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar tus clientes."));
+      .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar tus clientes."))
+      .finally(() => setCargado(true));
   }
 
   function cargarSinAsignar() {
     if (!token) return;
+    setErrorSinAsignar(null);
     obtenerClientesSinAsignar(token)
       .then(({ clientes }) => setClientesSinAsignar(clientes))
-      .catch(() => {});
+      .catch((err) => setErrorSinAsignar(err instanceof Error ? err.message : "No se pudo cargar la bandeja de clientes sin asignar."));
   }
 
   useEffect(cargar, [token]);
@@ -145,7 +149,10 @@ export default function MisClientes() {
 
   return (
     <main className="wide">
+      <span className="eyebrow">Tu cartera</span>
       <h1>Mis Clientes</h1>
+
+      {errorSinAsignar && <p role="alert">{errorSinAsignar}</p>}
 
       {clientesSinAsignar.length > 0 && (
         <div className="card" style={{ marginBottom: 16, borderColor: "var(--accent2)" }}>
@@ -289,7 +296,8 @@ export default function MisClientes() {
               </div>
             </Link>
           ))}
-        {clientes.length === 0 && <p style={{ color: "var(--muted)" }}>Aún no tienes clientes asignados.</p>}
+        {!cargado && <p style={{ color: "var(--muted)" }}>Cargando...</p>}
+        {cargado && clientes.length === 0 && <p style={{ color: "var(--muted)" }}>Aún no tienes clientes asignados.</p>}
       </div>
     </main>
   );

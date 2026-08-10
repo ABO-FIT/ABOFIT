@@ -15,12 +15,14 @@ export default function PagosTab({ clientId }: { clientId: number }) {
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [formAbierto, setFormAbierto] = useState(false);
+  const [cargado, setCargado] = useState(false);
 
   function cargar() {
     if (!token) return;
     obtenerPagosCliente(token, clientId)
       .then(({ pagos }) => setPagos(pagos))
-      .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar los pagos."));
+      .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar los pagos."))
+      .finally(() => setCargado(true));
   }
 
   useEffect(cargar, [token, clientId]);
@@ -121,7 +123,8 @@ export default function PagosTab({ clientId }: { clientId: number }) {
             </button>
           </div>
         ))}
-        {pagos.length === 0 && <p style={{ color: "var(--muted)" }}>Sin pagos registrados.</p>}
+        {!cargado && <p style={{ color: "var(--muted)" }}>Cargando...</p>}
+        {cargado && pagos.length === 0 && <p style={{ color: "var(--muted)" }}>Sin pagos registrados.</p>}
       </div>
     </div>
   );

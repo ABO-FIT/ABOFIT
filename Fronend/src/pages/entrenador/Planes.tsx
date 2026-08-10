@@ -23,12 +23,14 @@ export default function PlanesEntrenador() {
   const [creando, setCreando] = useState(false);
   const [form, setForm] = useState(VACIO);
   const [guardando, setGuardando] = useState(false);
+  const [cargado, setCargado] = useState(false);
 
   function cargar() {
     if (!token) return;
     obtenerPlanesEntrenador(token)
       .then(({ planes }) => setPlanes(planes))
-      .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar tus planes."));
+      .catch((err) => setError(err instanceof Error ? err.message : "No se pudieron cargar tus planes."))
+      .finally(() => setCargado(true));
   }
 
   useEffect(cargar, [token]);
@@ -141,7 +143,8 @@ export default function PlanesEntrenador() {
             </div>
           </div>
         ))}
-        {planes.length === 0 && <p style={{ color: "var(--muted)" }}>Aún no has creado ningún plan.</p>}
+        {!cargado && <p style={{ color: "var(--muted)" }}>Cargando...</p>}
+        {cargado && planes.length === 0 && <p style={{ color: "var(--muted)" }}>Aún no has creado ningún plan.</p>}
       </div>
 
       {modalAbierto && (

@@ -899,6 +899,11 @@ tr:last-child td {
 
   .menu-toggle {
     display: flex;
+    position: fixed;
+    top: 9px;
+    left: 12px;
+    z-index: 45;
+    background: var(--ink);
   }
 
   .sidebar-overlay {
