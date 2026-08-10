@@ -30,6 +30,7 @@
     "@types/react": "^18.3.3",
     "dotenv": "^16.4.5",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.5.3",
     "vitest": "^4.1.10"
   }

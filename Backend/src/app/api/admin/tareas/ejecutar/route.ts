@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
 
-  const resumen = await ejecutarTareasProgramadas();
+  const resumen = await ejecutarTareasProgramadas({ forzar: true });
 
   return NextResponse.json({
     message: "Tareas ejecutadas correctamente.",

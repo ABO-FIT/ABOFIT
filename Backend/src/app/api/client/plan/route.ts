@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
-import { parsearJson } from "@/lib/json";
+import { parsearJson, parsearJsonSeguro } from "@/lib/json";
 import { calcularSalud, libraAKg, piesAcm } from "@/lib/salud";
 
 export async function GET(request: Request) {
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
           price: plan.price,
           includesDiet: !!plan.includes_diet,
           description: plan.description,
-          beneficios: plan.beneficios ? parsearJson<string[]>(plan.beneficios) : [],
+          beneficios: plan.beneficios ? parsearJsonSeguro<string[]>(plan.beneficios, []) : [],
         }
       : null,
     goal: goal ? { key: goal.key, label: goal.label, shortLabel: goal.short_label, color: goal.color } : null,

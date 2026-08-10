@@ -21,6 +21,7 @@ function crearBuilder(tabla: string) {
     andWhere: () => builder,
     whereNotNull: () => builder,
     orderBy: () => builder,
+    forUpdate: () => builder,
     first: () => Promise.resolve(siguienteFila(tabla)),
     insert: (datos: unknown) => {
       insertsCapturados.push({ tabla, datos });
@@ -30,8 +31,17 @@ function crearBuilder(tabla: string) {
   return builder;
 }
 
+function crearDbFalso() {
+  const fn = vi.fn((tabla: string) => crearBuilder(tabla)) as unknown as {
+    (tabla: string): ReturnType<typeof crearBuilder>;
+    transaction: (callback: (trx: (tabla: string) => ReturnType<typeof crearBuilder>) => Promise<unknown>) => Promise<unknown>;
+  };
+  fn.transaction = (callback) => callback((tabla: string) => crearBuilder(tabla));
+  return fn;
+}
+
 vi.mock("@/lib/db", () => ({
-  db: vi.fn((tabla: string) => crearBuilder(tabla)),
+  db: crearDbFalso(),
 }));
 
 beforeEach(() => {
@@ -63,7 +73,7 @@ describe("obtenerOCrearPagoPendiente", () => {
     const { obtenerOCrearPagoPendiente } = await import("./pagosPlan");
 
     colas.payments = [null];
-    colas.users = [{ plan_key: null, trainer_id: null }];
+    colas.users = [{ plan_key: null, trainer_id: null }, { plan_key: null, trainer_id: null }];
 
     const resultado = await obtenerOCrearPagoPendiente(2);
 
@@ -78,7 +88,7 @@ describe("obtenerOCrearPagoPendiente", () => {
     const vigenciaHasta = manana.toISOString().slice(0, 10);
 
     colas.payments = [null, { estado: "pagado", periodo_fin: vigenciaHasta }];
-    colas.users = [{ plan_key: "A", trainer_id: 5, fecha_inicio: null }];
+    colas.users = [{ plan_key: "A", trainer_id: 5, fecha_inicio: null }, { plan_key: "A", trainer_id: 5, fecha_inicio: null }];
     colas.plans = [{ key: "A", periodicidad_key: "mensual", price: 8000, name: "Plan A" }];
     colas.periodicidades = [{ key: "mensual", dias: 30, label: "Mensual" }];
 
@@ -96,7 +106,7 @@ describe("obtenerOCrearPagoPendiente", () => {
       { estado: "pagado", periodo_fin: "2026-07-01" },
       { id: 999, monto: 8000, concepto: "Mensualidad Mensual — Plan A", fecha: "2026-08-07", estado: "pendiente", periodo_inicio: "2026-07-02", periodo_fin: "2026-07-31", comprobante_path: null },
     ];
-    colas.users = [{ plan_key: "A", trainer_id: 5, fecha_inicio: null }];
+    colas.users = [{ plan_key: "A", trainer_id: 5, fecha_inicio: null }, { plan_key: "A", trainer_id: 5, fecha_inicio: null }];
     colas.plans = [{ key: "A", periodicidad_key: "mensual", price: 8000, name: "Plan A" }];
     colas.periodicidades = [{ key: "mensual", dias: 30, label: "Mensual" }];
 

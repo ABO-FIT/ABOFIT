@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { registrarAuditoria } from "@/lib/auditoria";
-import { parsearJson } from "@/lib/json";
+import { parsearJsonSeguro } from "@/lib/json";
 
 const PERIODICIDADES_VALIDAS = ["semanal", "mensual", "trimestral", "semestral", "anual"];
 
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     .select("key", "name", "price", "includes_diet", "description", "periodicidad_key", "beneficios");
 
   return NextResponse.json({
-    planes: planes.map((p) => ({ ...p, beneficios: p.beneficios ? parsearJson<string[]>(p.beneficios) : [] })),
+    planes: planes.map((p) => ({ ...p, beneficios: p.beneficios ? parsearJsonSeguro<string[]>(p.beneficios, []) : [] })),
   });
 }
 

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { obtenerClienteDelEntrenador } from "@/lib/trainerClient";
 import { crearNotificacion } from "@/lib/notificaciones";
+import { calcularProximoPeriodo } from "@/lib/pagosPlan";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   const sesion = obtenerSesion(request);
@@ -50,6 +51,11 @@ export async function POST(request: Request, { params }: { params: { id: string 
   }
   const estadoFinal = estado === "pagado" ? "pagado" : "pendiente";
 
+  // Si se registra como pagado y el cliente tiene un plan con periodicidad, se le
+  // asigna el período que cubre — así el cobro automático no vuelve a generar un
+  // cargo pendiente para el mismo ciclo ya pagado en efectivo/manualmente.
+  const periodo = estadoFinal === "pagado" ? await calcularProximoPeriodo(clientId) : null;
+
   const [id] = await db("payments").insert({
     client_id: clientId,
     trainer_id: sesion.userId,
@@ -57,6 +63,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
     concepto: concepto.trim(),
     fecha,
     estado: estadoFinal,
+    periodo_inicio: periodo?.periodoInicio ?? null,
+    periodo_fin: periodo?.periodoFin ?? null,
   });
 
   await crearNotificacion({
