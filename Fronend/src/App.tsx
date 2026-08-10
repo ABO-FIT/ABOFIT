@@ -34,6 +34,7 @@ import Auditoria from "./pages/admin/Auditoria";
 import ConfigObjetivos from "./pages/admin/configuracion/Objetivos";
 import ConfigCategorias from "./pages/admin/configuracion/Categorias";
 import ConfigPlantillaFactura from "./pages/admin/configuracion/PlantillaFactura";
+import ConfigSmtp from "./pages/admin/configuracion/Smtp";
 import RutaProtegida from "./components/RutaProtegida";
 import PortalClienteLayout from "./components/PortalClienteLayout";
 import PortalEntrenadorLayout from "./components/PortalEntrenadorLayout";
@@ -117,6 +118,7 @@ export default function App() {
           <Route path="objetivos" element={<ConfigObjetivos />} />
           <Route path="categorias" element={<ConfigCategorias />} />
           <Route path="plantilla-factura" element={<ConfigPlantillaFactura />} />
+          <Route path="smtp" element={<ConfigSmtp />} />
         </Route>
         <Route path="perfil" element={<Perfil />} />
       </Route>

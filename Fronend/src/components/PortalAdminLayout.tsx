@@ -17,6 +17,7 @@ const ENLACES: EnlaceNav[] = [
       { to: "/admin/configuracion/objetivos", label: "Objetivos" },
       { to: "/admin/configuracion/categorias", label: "Categoría de Catálogo" },
       { to: "/admin/configuracion/plantilla-factura", label: "Plantillas de Facturas" },
+      { to: "/admin/configuracion/smtp", label: "SMTP" },
     ],
   },
   { to: "/admin/perfil", label: "Perfil", icon: "☺" },

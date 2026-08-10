@@ -1068,6 +1068,28 @@ export function actualizarPlantillaFactura(token: string, payload: {
   return request<{ message: string }>("/api/admin/config/invoice-template", "PUT", payload, token);
 }
 
+// ---- Configuración SMTP ----
+
+export interface ConfigSmtp {
+  host: string | null;
+  port: number | null;
+  secure: boolean;
+  usuario: string | null;
+  fromEmail: string | null;
+  fromName: string;
+  passwordConfigurada: boolean;
+}
+
+export function obtenerConfigSmtp(token: string) {
+  return request<{ config: ConfigSmtp | null }>("/api/admin/config/smtp", "GET", undefined, token);
+}
+
+export function actualizarConfigSmtp(token: string, payload: {
+  host: string; port: number | null; secure: boolean; usuario: string; password: string; fromEmail: string; fromName: string;
+}) {
+  return request<{ message: string }>("/api/admin/config/smtp", "PUT", payload, token);
+}
+
 // ---- Detalle de factura ----
 
 export interface DetalleFactura {
