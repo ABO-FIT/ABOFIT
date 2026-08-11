@@ -958,10 +958,10 @@ tr:last-child td {
 
   #invoice-print,
   .print-area {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
     margin: 0;
   }
 }
