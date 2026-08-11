@@ -76,7 +76,7 @@ export default function Login() {
         <Link to="/registro">Crear cuenta</Link>
       </div>
       <div className="auth-links" style={{ justifyContent: "center", marginTop: 8 }}>
-        <Link to="/catalogo">Ver catálogo sin crear cuenta</Link>
+        <Link to="/catalogo">Catálogo de Suplementos</Link>
       </div>
     </AuthLayout>
   );
