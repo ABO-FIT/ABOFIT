@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { money } from "../../lib/money";
 import {
   agregarAlCarrito,
+  cancelarPlanCliente,
   crearPedido,
   obtenerCatalogo,
   obtenerHistorial,
@@ -68,6 +69,7 @@ export default function MiPlan() {
   const [pagarPlanAbierto, setPagarPlanAbierto] = useState(false);
   const [pagoInfo, setPagoInfo] = useState<PagoPendienteRespuesta | null>(null);
   const [documento, setDocumento] = useState<{ titulo: string; subtitulo?: string; secciones: SeccionImprimible[] } | null>(null);
+  const [cancelando, setCancelando] = useState(false);
 
   const [historial, setHistorial] = useState<HistorialItem[]>([]);
   const [historialTipo, setHistorialTipo] = useState<"rutina" | "dieta">("rutina");
@@ -132,7 +134,7 @@ export default function MiPlan() {
     );
   }
 
-  const { plan, goal, rutina, dieta, caloriasObjetivo, proteinaObjetivoG } = datos;
+  const { plan, goal, rutina, dieta, caloriasObjetivo, proteinaObjetivoG, cancelacion } = datos;
 
   async function handleAgregar(productId: number) {
     if (!token) return;
@@ -175,6 +177,22 @@ export default function MiPlan() {
       subtitulo: dieta.nota || undefined,
       secciones: dieta.comidas.map((comida) => ({ encabezado: comida.meal, lineas: [comida.items] })),
     });
+  }
+
+  async function handleCancelarPlan() {
+    if (!token) return;
+    if (!window.confirm("¿Seguro que deseas cancelar tu plan? Mantendrás acceso hasta el final del período que ya pagaste, pero no se te generará ningún cobro más.")) return;
+    setError(null);
+    setCancelando(true);
+    try {
+      await cancelarPlanCliente(token);
+      obtenerMiPlan(token).then(setDatos).catch(() => {});
+      cargarPagoInfo();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    } finally {
+      setCancelando(false);
+    }
   }
 
   function handleDescargarHistorial() {
@@ -229,10 +247,29 @@ export default function MiPlan() {
           >
             Pagar plan
           </button>
-          {pagoInfo?.alDia && pagoInfo.vigenciaHasta && (
+          {pagoInfo?.alDia && pagoInfo.vigenciaHasta && !cancelacion && (
             <p style={{ margin: "8px 0 0", fontSize: 13, color: "#aeb4c0" }}>
               Al día · próximo pago el {proximoPagoTexto(pagoInfo.vigenciaHasta)}
             </p>
+          )}
+
+          {cancelacion ? (
+            <p style={{ margin: "12px 0 0", fontSize: 13, color: "#f5c26b" }}>
+              Tu plan fue cancelado {cancelacion.por === "entrenador" ? "por tu entrenador" : "por ti"} y mantendrás acceso hasta el{" "}
+              {cancelacion.vigenteHasta ? new Date(cancelacion.vigenteHasta).toLocaleDateString("es-DO") : "final del período actual"}.
+              {cancelacion.motivo && <> Motivo: {cancelacion.motivo}</>}
+            </p>
+          ) : (
+            <button
+              type="button"
+              className="secondary"
+              style={{ marginTop: 8, marginLeft: 8, background: "transparent", borderColor: "#aeb4c0", color: "#aeb4c0" }}
+              disabled={cancelando || !!pagoInfo?.pago}
+              title={pagoInfo?.pago ? "Resuelve tu pago pendiente antes de cancelar." : undefined}
+              onClick={handleCancelarPlan}
+            >
+              {cancelando ? "Cancelando..." : "Cancelar plan"}
+            </button>
           )}
         </div>
       )}

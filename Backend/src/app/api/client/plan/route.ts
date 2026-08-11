@@ -63,5 +63,8 @@ export async function GET(request: Request) {
     dieta: plan?.includes_diet && dieta ? { nota: dieta.nota, comidas: parsearJson(dieta.comidas) } : null,
     caloriasObjetivo: salud.caloriasObjetivo,
     proteinaObjetivoG: salud.proteinaObjetivoG,
+    cancelacion: usuario.plan_cancelado_en
+      ? { vigenteHasta: usuario.plan_vigente_hasta, por: usuario.plan_cancelado_por, motivo: usuario.plan_cancelado_motivo }
+      : null,
   });
 }

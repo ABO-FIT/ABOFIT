@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import {
   cambiarObjetivoCliente,
   cambiarPlanCliente,
+  cancelarPlanEntrenador,
   guardarEvaluacion,
   obtenerDetalleCliente,
   obtenerHistorialCliente,
@@ -161,6 +162,27 @@ export default function ClienteDetalle() {
     cargar();
   }
 
+  const [mostrarCancelar, setMostrarCancelar] = useState(false);
+  const [motivoCancelar, setMotivoCancelar] = useState("");
+  const [guardandoCancelar, setGuardandoCancelar] = useState(false);
+  const [errorCancelar, setErrorCancelar] = useState<string | null>(null);
+
+  async function handleCancelarPlan() {
+    if (!token || !motivoCancelar.trim()) return;
+    setErrorCancelar(null);
+    setGuardandoCancelar(true);
+    try {
+      await cancelarPlanEntrenador(token, clientId, motivoCancelar.trim());
+      setMostrarCancelar(false);
+      setMotivoCancelar("");
+      cargar();
+    } catch (err) {
+      setErrorCancelar(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+    } finally {
+      setGuardandoCancelar(false);
+    }
+  }
+
   if (error) {
     return (
       <main className="wide">
@@ -206,6 +228,44 @@ export default function ClienteDetalle() {
           </select>
         </div>
       </div>
+
+      {cliente.planKey && cliente.cancelacion && (
+        <p className="card" style={{ color: "var(--accent2)", marginBottom: 16 }}>
+          Plan cancelado {cliente.cancelacion.por === "entrenador" ? "por ti" : "por el cliente"} · vigente hasta{" "}
+          {cliente.cancelacion.vigenteHasta ? new Date(cliente.cancelacion.vigenteHasta).toLocaleDateString("es-DO") : "—"}
+          {cliente.cancelacion.motivo && <> · Motivo: {cliente.cancelacion.motivo}</>}
+        </p>
+      )}
+
+      {cliente.planKey && !cliente.cancelacion && (
+        <div style={{ marginBottom: 16 }}>
+          {!mostrarCancelar ? (
+            <button type="button" className="secondary" style={{ color: "var(--accent2)" }} onClick={() => setMostrarCancelar(true)}>
+              Cancelar plan del cliente
+            </button>
+          ) : (
+            <div className="card">
+              <label htmlFor="motivo-cancelar">Motivo de la cancelación (obligatorio, se le enviará al cliente)</label>
+              <textarea
+                id="motivo-cancelar"
+                value={motivoCancelar}
+                onChange={(e) => setMotivoCancelar(e.target.value)}
+                rows={3}
+                placeholder="Ej. El cliente no ha respondido ni asistido en varias semanas."
+              />
+              {errorCancelar && <p role="alert">{errorCancelar}</p>}
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <button type="button" className="secondary" onClick={() => { setMostrarCancelar(false); setMotivoCancelar(""); setErrorCancelar(null); }}>
+                  Cancelar
+                </button>
+                <button type="button" disabled={guardandoCancelar || !motivoCancelar.trim()} onClick={handleCancelarPlan}>
+                  {guardandoCancelar ? "Enviando..." : "Confirmar cancelación"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, borderBottom: "1px solid var(--line)" }}>
         {TABS.map((t) => (

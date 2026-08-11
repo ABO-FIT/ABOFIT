@@ -91,6 +91,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
       presionDiastolica: cliente.presion_diastolica,
       porcentajeGrasa: cliente.porcentaje_grasa,
       porcentajeMasaMuscular: cliente.porcentaje_masa_muscular,
+      cancelacion: cliente.plan_cancelado_en
+        ? { vigenteHasta: cliente.plan_vigente_hasta, por: cliente.plan_cancelado_por, motivo: cliente.plan_cancelado_motivo }
+        : null,
     },
     salud,
     porcentajeSemana,

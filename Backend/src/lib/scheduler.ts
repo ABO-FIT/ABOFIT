@@ -3,12 +3,14 @@ import { db } from "@/lib/db";
 import { obtenerOCrearPagoPendiente } from "@/lib/pagosPlan";
 import { calcularAlertasEntrenador } from "@/lib/alertas";
 import { crearNotificacion } from "@/lib/notificaciones";
+import { finalizarCancelacionesVencidas } from "@/lib/cancelacionPlan";
 
 const DIAS_SIN_REPETIR_ALERTA = 7;
 
 export interface ResumenTareasProgramadas {
   cobrosGenerados: number;
   alertasNotificadas: number;
+  cancelacionesFinalizadas: number;
   omitido?: boolean;
 }
 
@@ -119,13 +121,14 @@ export async function ejecutarTareasProgramadas(opciones: { forzar?: boolean } =
   } else {
     const reservado = await reclamarEjecucionDiaria();
     if (!reservado) {
-      return { cobrosGenerados: 0, alertasNotificadas: 0, omitido: true };
+      return { cobrosGenerados: 0, alertasNotificadas: 0, cancelacionesFinalizadas: 0, omitido: true };
     }
   }
 
+  const cancelacionesFinalizadas = await finalizarCancelacionesVencidas();
   const cobrosGenerados = await generarCobrosVencidos();
   const alertasNotificadas = await notificarAlertasEntrenadores();
-  return { cobrosGenerados, alertasNotificadas };
+  return { cobrosGenerados, alertasNotificadas, cancelacionesFinalizadas };
 }
 
 let programadorIniciado = false;

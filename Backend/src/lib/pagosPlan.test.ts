@@ -64,6 +64,7 @@ describe("obtenerOCrearPagoPendiente", () => {
       alDia: false,
       vigenciaHasta: null,
       creado: false,
+      cancelado: false,
       pago: { id: 1, monto: 8000, concepto: "Mensualidad Plan A", fecha: "2026-08-01", estado: "pendiente", comprobantePath: null },
     });
     expect(insertsCapturados).toHaveLength(0);
@@ -94,7 +95,20 @@ describe("obtenerOCrearPagoPendiente", () => {
 
     const resultado = await obtenerOCrearPagoPendiente(2);
 
-    expect(resultado).toEqual({ alDia: true, vigenciaHasta, creado: false, pago: null });
+    expect(resultado).toEqual({ alDia: true, vigenciaHasta, creado: false, cancelado: false, pago: null });
+    expect(insertsCapturados).toHaveLength(0);
+  });
+
+  it("no genera cobro ni pago pendiente si el plan ya está cancelado", async () => {
+    const { obtenerOCrearPagoPendiente } = await import("./pagosPlan");
+
+    colas.payments = [null];
+    const clienteCancelado = { plan_key: "A", trainer_id: 5, fecha_inicio: null, plan_cancelado_en: "2026-08-01T00:00:00.000Z", plan_vigente_hasta: "2026-08-31" };
+    colas.users = [clienteCancelado, clienteCancelado];
+
+    const resultado = await obtenerOCrearPagoPendiente(2);
+
+    expect(resultado).toEqual({ alDia: true, vigenciaHasta: "2026-08-31", creado: false, cancelado: true, pago: null });
     expect(insertsCapturados).toHaveLength(0);
   });
 

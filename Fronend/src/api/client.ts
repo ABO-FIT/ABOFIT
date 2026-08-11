@@ -140,6 +140,12 @@ export interface Dieta {
   comidas: Comida[];
 }
 
+export interface CancelacionPlan {
+  vigenteHasta: string | null;
+  por: "cliente" | "entrenador";
+  motivo: string | null;
+}
+
 export type MiPlanRespuesta =
   | { asignado: false }
   | {
@@ -150,10 +156,19 @@ export type MiPlanRespuesta =
       dieta: Dieta | null;
       caloriasObjetivo: number | null;
       proteinaObjetivoG: number | null;
+      cancelacion: CancelacionPlan | null;
     };
 
 export function obtenerMiPlan(token: string) {
   return request<MiPlanRespuesta>("/api/client/plan", "GET", undefined, token);
+}
+
+export function cancelarPlanCliente(token: string) {
+  return request<{ message: string; vigenteHasta: string }>("/api/client/plan/cancelar", "POST", undefined, token);
+}
+
+export function cancelarPlanEntrenador(token: string, clientId: number, motivo: string) {
+  return request<{ message: string; vigenteHasta: string }>(`/api/trainer/clients/${clientId}/plan/cancelar`, "POST", { motivo }, token);
 }
 
 export type MisRutinasRespuesta =
@@ -393,6 +408,7 @@ export interface ClienteDetalle {
   presionDiastolica: number | null;
   porcentajeGrasa: string | null;
   porcentajeMasaMuscular: string | null;
+  cancelacion: CancelacionPlan | null;
 }
 
 export interface SaludCalculada {
@@ -1176,6 +1192,7 @@ export function obtenerMisPagos(token: string) {
 export interface PagoPendienteRespuesta {
   alDia: boolean;
   vigenciaHasta: string | null;
+  cancelado?: boolean;
   pago: {
     id: number;
     monto: number;

@@ -9,6 +9,7 @@ export interface ResultadoPagoPendiente {
   alDia: boolean;
   vigenciaHasta: string | null;
   creado: boolean;
+  cancelado: boolean;
   pago: {
     id: number;
     monto: number;
@@ -105,6 +106,7 @@ export async function obtenerOCrearPagoPendiente(clientId: number): Promise<Resu
         alDia: false,
         vigenciaHasta: null,
         creado: false,
+        cancelado: false,
         pago: {
           id: pendiente.id,
           monto: pendiente.monto,
@@ -119,6 +121,10 @@ export async function obtenerOCrearPagoPendiente(clientId: number): Promise<Resu
     const cliente = await trx("users").where({ id: clientId }).first();
     if (!cliente?.plan_key || !cliente.trainer_id) {
       return null;
+    }
+
+    if (cliente.plan_cancelado_en) {
+      return { alDia: true, vigenciaHasta: cliente.plan_vigente_hasta, creado: false, cancelado: true, pago: null };
     }
 
     const plan = await trx("plans").where({ key: cliente.plan_key }).first();
@@ -137,7 +143,7 @@ export async function obtenerOCrearPagoPendiente(clientId: number): Promise<Resu
     const hoy = new Date();
 
     if (ultimoPago?.estado === "pagado" && ultimoPago.periodo_fin && new Date(ultimoPago.periodo_fin) >= hoy) {
-      return { alDia: true, vigenciaHasta: ultimoPago.periodo_fin, creado: false, pago: null };
+      return { alDia: true, vigenciaHasta: ultimoPago.periodo_fin, creado: false, cancelado: false, pago: null };
     }
 
     const periodo = calcularPeriodoDesdeUltimoPago({ cliente, plan, periodicidad, ultimoPago });
@@ -159,6 +165,7 @@ export async function obtenerOCrearPagoPendiente(clientId: number): Promise<Resu
       alDia: false,
       vigenciaHasta: null,
       creado: true,
+      cancelado: false,
       pago: {
         id: nuevo.id,
         monto: nuevo.monto,
