@@ -5,6 +5,7 @@ import {
   cambiarPlanCliente,
   guardarEvaluacion,
   obtenerDetalleCliente,
+  obtenerHistorialCliente,
   obtenerHistorialEvaluaciones,
   obtenerNutricionCliente,
   obtenerObjetivos,
@@ -14,6 +15,7 @@ import {
   type EvaluacionHistorial,
   type EvaluacionPayload,
   type GoalAdmin,
+  type HistorialItem,
   type PlanAdmin,
   type RegistroNutricion,
 } from "../../api/client";
@@ -21,6 +23,7 @@ import { useAuth } from "../../context/AuthContext";
 import RutinaBuilder from "./RutinaBuilder";
 import DietaBuilder from "./DietaBuilder";
 import PagosTab from "./PagosTab";
+import DocumentoImprimible, { type SeccionImprimible } from "../../components/DocumentoImprimible";
 
 const NIVELES_ACTIVIDAD = [
   { key: "sedentario", label: "Sedentario" },
@@ -58,6 +61,36 @@ export default function ClienteDetalle() {
 
   const [diarioNutricion, setDiarioNutricion] = useState<RegistroNutricion[]>([]);
   const [adherenciaPlan, setAdherenciaPlan] = useState<AdherenciaDieta | null>(null);
+
+  const [documento, setDocumento] = useState<{ titulo: string; subtitulo?: string; secciones: SeccionImprimible[] } | null>(null);
+  const [historial, setHistorial] = useState<HistorialItem[]>([]);
+  const [historialTipo, setHistorialTipo] = useState<"rutina" | "dieta">("rutina");
+  const [historialDesde, setHistorialDesde] = useState("");
+  const [historialHasta, setHistorialHasta] = useState("");
+  const [errorHistorial, setErrorHistorial] = useState<string | null>(null);
+
+  function cargarHistorial() {
+    if (!token) return;
+    setErrorHistorial(null);
+    obtenerHistorialCliente(token, clientId, { tipo: historialTipo, desde: historialDesde || undefined, hasta: historialHasta || undefined })
+      .then(({ historial }) => setHistorial(historial))
+      .catch((err) => setErrorHistorial(err instanceof Error ? err.message : "No se pudo cargar el historial."));
+  }
+
+  useEffect(cargarHistorial, [token, clientId, historialTipo]);
+
+  function handleDescargarHistorial() {
+    setDocumento({
+      titulo: `Historial de ${historialTipo === "rutina" ? "rutina" : "alimentación"} completada — ${cliente.nombre} ${cliente.apellido}`,
+      subtitulo: historialDesde || historialHasta ? `Del ${historialDesde || "inicio"} al ${historialHasta || "hoy"}` : "Todo el historial",
+      secciones: [
+        {
+          encabezado: "Registros",
+          lineas: historial.map((item) => `${new Date(item.fecha).toLocaleDateString("es-DO")} — ${item.etiqueta}`),
+        },
+      ],
+    });
+  }
 
   useEffect(() => {
     if (!token) return;
@@ -148,6 +181,8 @@ export default function ClienteDetalle() {
 
   return (
     <main className="wide">
+      {documento && <DocumentoImprimible {...documento} onImpreso={() => setDocumento(null)} />}
+
       <h1>{cliente.nombre} {cliente.apellido}</h1>
       <p style={{ color: "var(--muted)" }}>@{cliente.usuario} · {cliente.correo} · {cliente.telefono}</p>
 
@@ -389,6 +424,41 @@ export default function ClienteDetalle() {
               </div>
             ))}
             {diarioNutricion.length === 0 && <p style={{ color: "var(--muted)" }}>El cliente no ha registrado comidas por su cuenta.</p>}
+          </div>
+
+          <h3 style={{ marginTop: 24 }}>Historial de cumplimiento</h3>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "end", marginBottom: 12 }}>
+            <div>
+              <label htmlFor="historial-tipo-t">Tipo</label>
+              <select id="historial-tipo-t" value={historialTipo} onChange={(e) => setHistorialTipo(e.target.value as "rutina" | "dieta")}>
+                <option value="rutina">Rutina</option>
+                <option value="dieta">Alimentación</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="historial-desde-t">Desde</label>
+              <input id="historial-desde-t" type="date" value={historialDesde} onChange={(e) => setHistorialDesde(e.target.value)} />
+            </div>
+            <div>
+              <label htmlFor="historial-hasta-t">Hasta</label>
+              <input id="historial-hasta-t" type="date" value={historialHasta} onChange={(e) => setHistorialHasta(e.target.value)} />
+            </div>
+            <button type="button" onClick={cargarHistorial}>Filtrar</button>
+            {historial.length > 0 && (
+              <button type="button" className="secondary" onClick={handleDescargarHistorial}>⬇ Descargar</button>
+            )}
+          </div>
+
+          {errorHistorial && <p role="alert">{errorHistorial}</p>}
+
+          <div style={{ display: "grid", gap: 8 }}>
+            {historial.map((item) => (
+              <div key={item.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+                <span>{item.etiqueta}</span>
+                <span style={{ color: "var(--muted)", fontSize: 13 }}>{new Date(item.fecha).toLocaleDateString("es-DO")}</span>
+              </div>
+            ))}
+            {historial.length === 0 && <p style={{ color: "var(--muted)" }}>Sin registros en este período.</p>}
           </div>
         </div>
       )}

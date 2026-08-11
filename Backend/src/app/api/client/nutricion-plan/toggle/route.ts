@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { obtenerComidasAsignadas } from "@/lib/dietaEstado";
+import { registrarHistorial } from "@/lib/historial";
 
 export async function POST(request: Request) {
   const sesion = obtenerSesion(request);
@@ -31,5 +32,6 @@ export async function POST(request: Request) {
   }
 
   await db("diet_completions").insert({ user_id: sesion.userId, fecha, meal });
+  await registrarHistorial({ userId: sesion.userId, tipo: "dieta", referencia: meal, etiqueta: meal });
   return NextResponse.json({ completado: true });
 }

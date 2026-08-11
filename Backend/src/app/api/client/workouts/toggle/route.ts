@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 import { claveSemanaActual } from "@/lib/semana";
+import { parsearJson } from "@/lib/json";
+import { registrarHistorial } from "@/lib/historial";
+
+interface DiaRutina {
+  id: string;
+  day: string;
+  focus: string;
+}
 
 export async function POST(request: Request) {
   const sesion = obtenerSesion(request);
@@ -28,5 +36,18 @@ export async function POST(request: Request) {
   }
 
   await db("workout_completions").insert({ user_id: sesion.userId, semana_key: semana, dia_id: diaId });
+
+  const usuario = await db("users").where({ id: sesion.userId }).first();
+  if (usuario?.goal_key) {
+    const rutinaCustom = await db("custom_routines").where({ user_id: sesion.userId }).first();
+    const rutinaDefault = rutinaCustom ? null : await db("default_routines").where({ goal_key: usuario.goal_key }).first();
+    const rutina = rutinaCustom ?? rutinaDefault;
+    const dias = rutina ? parsearJson<DiaRutina[]>(rutina.contenido) : [];
+    const dia = dias.find((d) => d.id === diaId);
+    if (dia) {
+      await registrarHistorial({ userId: sesion.userId, tipo: "rutina", referencia: diaId, etiqueta: `${dia.day} — ${dia.focus}` });
+    }
+  }
+
   return NextResponse.json({ completado: true });
 }

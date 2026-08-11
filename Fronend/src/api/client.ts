@@ -212,6 +212,39 @@ export function marcarComidaPlan(token: string, meal: string) {
   return request<{ completado: boolean }>("/api/client/nutricion-plan/toggle", "POST", { meal }, token);
 }
 
+// ---- Historial de rutina/dieta completadas ----
+
+export interface HistorialItem {
+  id: number;
+  tipo: "rutina" | "dieta";
+  fecha: string;
+  referencia: string;
+  etiqueta: string;
+}
+
+export interface FiltroHistorial {
+  tipo?: "rutina" | "dieta";
+  desde?: string;
+  hasta?: string;
+}
+
+function queryHistorial(filtros: FiltroHistorial): string {
+  const params = new URLSearchParams();
+  if (filtros.tipo) params.set("tipo", filtros.tipo);
+  if (filtros.desde) params.set("desde", filtros.desde);
+  if (filtros.hasta) params.set("hasta", filtros.hasta);
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+export function obtenerHistorial(token: string, filtros: FiltroHistorial = {}) {
+  return request<{ historial: HistorialItem[] }>(`/api/client/historial${queryHistorial(filtros)}`, "GET", undefined, token);
+}
+
+export function obtenerHistorialCliente(token: string, clientId: number, filtros: FiltroHistorial = {}) {
+  return request<{ historial: HistorialItem[] }>(`/api/trainer/clients/${clientId}/historial${queryHistorial(filtros)}`, "GET", undefined, token);
+}
+
 export interface Logro {
   id: string;
   titulo: string;

@@ -937,7 +937,9 @@ tr:last-child td {
   }
 
   #invoice-print,
-  #invoice-print * {
+  #invoice-print *,
+  .print-area,
+  .print-area * {
     visibility: visible;
   }
 
@@ -954,7 +956,8 @@ tr:last-child td {
     box-shadow: none !important;
   }
 
-  #invoice-print {
+  #invoice-print,
+  .print-area {
     position: fixed;
     left: 0;
     top: 0;

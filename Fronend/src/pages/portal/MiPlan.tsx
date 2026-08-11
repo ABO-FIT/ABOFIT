@@ -1,11 +1,23 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { money } from "../../lib/money";
-import { agregarAlCarrito, crearPedido, obtenerCatalogo, obtenerMiPlan, obtenerPagoPendiente, type MiPlanRespuesta, type PagoPendienteRespuesta, type Producto } from "../../api/client";
+import {
+  agregarAlCarrito,
+  crearPedido,
+  obtenerCatalogo,
+  obtenerHistorial,
+  obtenerMiPlan,
+  obtenerPagoPendiente,
+  type HistorialItem,
+  type MiPlanRespuesta,
+  type PagoPendienteRespuesta,
+  type Producto,
+} from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import ProductModal from "../../components/ProductModal";
 import PagarPlanModal from "../../components/PagarPlanModal";
+import DocumentoImprimible, { type SeccionImprimible } from "../../components/DocumentoImprimible";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -55,6 +67,13 @@ export default function MiPlan() {
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [pagarPlanAbierto, setPagarPlanAbierto] = useState(false);
   const [pagoInfo, setPagoInfo] = useState<PagoPendienteRespuesta | null>(null);
+  const [documento, setDocumento] = useState<{ titulo: string; subtitulo?: string; secciones: SeccionImprimible[] } | null>(null);
+
+  const [historial, setHistorial] = useState<HistorialItem[]>([]);
+  const [historialTipo, setHistorialTipo] = useState<"rutina" | "dieta">("rutina");
+  const [historialDesde, setHistorialDesde] = useState("");
+  const [historialHasta, setHistorialHasta] = useState("");
+  const [errorHistorial, setErrorHistorial] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -69,6 +88,16 @@ export default function MiPlan() {
   }
 
   useEffect(cargarPagoInfo, [token]);
+
+  function cargarHistorial() {
+    if (!token) return;
+    setErrorHistorial(null);
+    obtenerHistorial(token, { tipo: historialTipo, desde: historialDesde || undefined, hasta: historialHasta || undefined })
+      .then(({ historial }) => setHistorial(historial))
+      .catch((err) => setErrorHistorial(err instanceof Error ? err.message : "No se pudo cargar el historial."));
+  }
+
+  useEffect(cargarHistorial, [token, historialTipo]);
 
   useEffect(() => {
     if (!datos || !datos.asignado || !datos.goal) return;
@@ -131,8 +160,40 @@ export default function MiPlan() {
     }
   }
 
+  function handleDescargarRutina() {
+    setDocumento({
+      titulo: "Rutina semanal",
+      subtitulo: plan ? `${plan.name}${goal ? ` · ${goal.label}` : ""}` : undefined,
+      secciones: rutina.map((dia) => ({ encabezado: `${dia.day} — ${dia.focus}`, lineas: dia.exercises })),
+    });
+  }
+
+  function handleDescargarDieta() {
+    if (!dieta) return;
+    setDocumento({
+      titulo: "Plan de alimentación",
+      subtitulo: dieta.nota || undefined,
+      secciones: dieta.comidas.map((comida) => ({ encabezado: comida.meal, lineas: [comida.items] })),
+    });
+  }
+
+  function handleDescargarHistorial() {
+    setDocumento({
+      titulo: `Historial de ${historialTipo === "rutina" ? "rutina" : "alimentación"} completada`,
+      subtitulo: historialDesde || historialHasta ? `Del ${historialDesde || "inicio"} al ${historialHasta || "hoy"}` : "Todo el historial",
+      secciones: [
+        {
+          encabezado: "Registros",
+          lineas: historial.map((item) => `${new Date(item.fecha).toLocaleDateString("es-DO")} — ${item.etiqueta}`),
+        },
+      ],
+    });
+  }
+
   return (
     <main className="wide">
+      {documento && <DocumentoImprimible {...documento} onImpreso={() => setDocumento(null)} />}
+
       <span className="eyebrow">Tu suscripción</span>
       <h1>Mi plan</h1>
 
@@ -251,6 +312,11 @@ export default function MiPlan() {
       )}
 
       <SeccionDesplegable titulo="Rutina semanal">
+        {rutina.length > 0 && (
+          <button type="button" className="secondary" style={{ marginBottom: 12 }} onClick={handleDescargarRutina}>
+            ⬇ Descargar rutina
+          </button>
+        )}
         <div style={{ display: "grid", gap: 12 }}>
           {rutina.map((dia) => (
             <div key={dia.id} className="card">
@@ -270,6 +336,9 @@ export default function MiPlan() {
 
       {dieta && (
         <SeccionDesplegable titulo="Plan de alimentación">
+          <button type="button" className="secondary" style={{ marginBottom: 12 }} onClick={handleDescargarDieta}>
+            ⬇ Descargar plan de alimentación
+          </button>
           <p style={{ color: "var(--muted)" }}>{dieta.nota}</p>
           <div style={{ display: "grid", gap: 8 }}>
             {dieta.comidas.map((comida) => (
@@ -281,6 +350,42 @@ export default function MiPlan() {
           </div>
         </SeccionDesplegable>
       )}
+
+      <SeccionDesplegable titulo="Historial de cumplimiento">
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "end", marginBottom: 12 }}>
+          <div>
+            <label htmlFor="historial-tipo">Tipo</label>
+            <select id="historial-tipo" value={historialTipo} onChange={(e) => setHistorialTipo(e.target.value as "rutina" | "dieta")}>
+              <option value="rutina">Rutina</option>
+              <option value="dieta">Alimentación</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="historial-desde">Desde</label>
+            <input id="historial-desde" type="date" value={historialDesde} onChange={(e) => setHistorialDesde(e.target.value)} />
+          </div>
+          <div>
+            <label htmlFor="historial-hasta">Hasta</label>
+            <input id="historial-hasta" type="date" value={historialHasta} onChange={(e) => setHistorialHasta(e.target.value)} />
+          </div>
+          <button type="button" onClick={cargarHistorial}>Filtrar</button>
+          {historial.length > 0 && (
+            <button type="button" className="secondary" onClick={handleDescargarHistorial}>⬇ Descargar</button>
+          )}
+        </div>
+
+        {errorHistorial && <p role="alert">{errorHistorial}</p>}
+
+        <div style={{ display: "grid", gap: 8 }}>
+          {historial.map((item) => (
+            <div key={item.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+              <span>{item.etiqueta}</span>
+              <span style={{ color: "var(--muted)", fontSize: 13 }}>{new Date(item.fecha).toLocaleDateString("es-DO")}</span>
+            </div>
+          ))}
+          {historial.length === 0 && <p style={{ color: "var(--muted)" }}>Sin registros en este período.</p>}
+        </div>
+      </SeccionDesplegable>
     </main>
   );
 }
