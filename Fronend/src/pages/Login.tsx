@@ -75,6 +75,9 @@ export default function Login() {
         <Link to="/olvide-password">¿Olvidaste tu contraseña?</Link>
         <Link to="/registro">Crear cuenta</Link>
       </div>
+      <div className="auth-links" style={{ justifyContent: "center", marginTop: 8 }}>
+        <Link to="/catalogo">Ver catálogo sin crear cuenta</Link>
+      </div>
     </AuthLayout>
   );
 }

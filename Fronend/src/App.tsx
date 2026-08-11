@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
+import CatalogoPublico from "./pages/CatalogoPublico";
 import Registro from "./pages/Registro";
 import OlvidePassword from "./pages/OlvidePassword";
 import EstablecerPassword from "./pages/EstablecerPassword";
@@ -45,6 +46,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/catalogo" element={<CatalogoPublico />} />
       <Route path="/registro" element={<Registro />} />
       <Route path="/olvide-password" element={<OlvidePassword />} />
       <Route path="/establecer-password" element={<EstablecerPassword />} />
