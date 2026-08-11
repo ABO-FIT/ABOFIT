@@ -937,9 +937,7 @@ tr:last-child td {
   }
 
   #invoice-print,
-  #invoice-print *,
-  .print-area,
-  .print-area * {
+  #invoice-print * {
     visibility: visible;
   }
 
@@ -963,20 +961,35 @@ tr:last-child td {
     width: 100% !important;
     margin: 0;
   }
+}
 
-  /* .print-area (rutina/dieta/historial) no vive dentro de un modal con
-     overflow, así que no necesita position:fixed para escapar de nada —
-     y fixed hace que Chrome repita todo el contenido en cada página
-     impresa cuando el documento no cabe en una sola hoja. */
-  .print-area {
-    position: static !important;
-    left: auto !important;
-    top: auto !important;
-    width: 100% !important;
-    margin: 0;
+/*
+ * Documentos imprimibles genéricos (rutina, dieta, historial de
+ * cumplimiento). A diferencia de la factura, NO viven dentro del layout
+ * de la app ni de ningún modal — se montan directamente como hijos de
+ * <body> vía un portal de React, así que no comparten ninguna regla con
+ * #invoice-print/.modal-box y no heredan restricciones de altura del
+ * sidebar/flex que cortaban el contenido a una sola página.
+ */
+.doc-imprimible {
+  display: none;
+}
+
+@media print {
+  body:has(.doc-imprimible) > #root {
+    display: none !important;
   }
 
-  .print-section {
+  .doc-imprimible {
+    display: block !important;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 32px;
+    background: #fff;
+  }
+
+  .doc-imprimible-seccion {
     page-break-inside: avoid;
   }
 }
