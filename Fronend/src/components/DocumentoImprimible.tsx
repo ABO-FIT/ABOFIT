@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import logoOnLight from "../assets/brand/logo-onlight.png";
 
 export interface SeccionImprimible {
   encabezado: string;
@@ -29,17 +30,21 @@ export default function DocumentoImprimible({
   return (
     <div
       className="print-area"
-      style={{ position: "absolute", left: -9999, top: 0, width: 700, background: "#fff", color: "#111", padding: 32, fontFamily: "Arial, sans-serif" }}
+      style={{ position: "absolute", left: -9999, top: 0, width: 700, background: "#fff", color: "#111", padding: 32, fontFamily: "Arial, sans-serif", lineHeight: 1.4 }}
     >
-      <h1 style={{ margin: "0 0 4px", fontSize: 24 }}>{titulo}</h1>
+      <div style={{ display: "flex", alignItems: "center", borderBottom: "3px solid #e85d04", paddingBottom: 16, marginBottom: 24 }}>
+        <img src={logoOnLight} alt="ABOFIT" style={{ height: 44, width: "auto", display: "block" }} />
+      </div>
+
+      <h1 style={{ margin: "0 0 6px", fontSize: 24, lineHeight: 1.3 }}>{titulo}</h1>
       {subtitulo && <p style={{ margin: "0 0 20px", color: "#555" }}>{subtitulo}</p>}
       {secciones.map((seccion) => (
-        <div key={seccion.encabezado} style={{ marginBottom: 18 }}>
-          <h2 style={{ fontSize: 16, margin: "0 0 6px", borderBottom: "1px solid #ddd", paddingBottom: 4 }}>{seccion.encabezado}</h2>
+        <div key={seccion.encabezado} style={{ marginBottom: 20 }}>
+          <h2 style={{ fontSize: 16, lineHeight: 1.4, margin: "0 0 10px", borderBottom: "1px solid #ddd", paddingBottom: 8 }}>{seccion.encabezado}</h2>
           {seccion.lineas.length > 0 ? (
-            <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.6 }}>
               {seccion.lineas.map((linea, i) => (
-                <li key={i} style={{ marginBottom: 2 }}>{linea}</li>
+                <li key={i} style={{ marginBottom: 4 }}>{linea}</li>
               ))}
             </ul>
           ) : (
