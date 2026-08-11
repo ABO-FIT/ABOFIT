@@ -980,6 +980,11 @@ tr:last-child td {
     display: none !important;
   }
 
+  .doc-imprimible,
+  .doc-imprimible * {
+    visibility: visible !important;
+  }
+
   .doc-imprimible {
     display: block !important;
     width: 100%;
