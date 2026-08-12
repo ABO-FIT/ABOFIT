@@ -24,6 +24,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "diaId es obligatorio." }, { status: 400 });
   }
 
+  const usuarioActivo = await db("users").where({ id: sesion.userId }).first();
+  if (!usuarioActivo?.plan_key || !usuarioActivo.goal_key) {
+    return NextResponse.json({ error: "No tienes un plan activo." }, { status: 400 });
+  }
+
   const semana = claveSemanaActual();
 
   const existente = await db("workout_completions")
@@ -37,16 +42,13 @@ export async function POST(request: Request) {
 
   await db("workout_completions").insert({ user_id: sesion.userId, semana_key: semana, dia_id: diaId });
 
-  const usuario = await db("users").where({ id: sesion.userId }).first();
-  if (usuario?.goal_key) {
-    const rutinaCustom = await db("custom_routines").where({ user_id: sesion.userId }).first();
-    const rutinaDefault = rutinaCustom ? null : await db("default_routines").where({ goal_key: usuario.goal_key }).first();
-    const rutina = rutinaCustom ?? rutinaDefault;
-    const dias = rutina ? parsearJson<DiaRutina[]>(rutina.contenido) : [];
-    const dia = dias.find((d) => d.id === diaId);
-    if (dia) {
-      await registrarHistorial({ userId: sesion.userId, tipo: "rutina", referencia: diaId, etiqueta: `${dia.day} — ${dia.focus}` });
-    }
+  const rutinaCustom = await db("custom_routines").where({ user_id: sesion.userId }).first();
+  const rutinaDefault = rutinaCustom ? null : await db("default_routines").where({ goal_key: usuarioActivo.goal_key }).first();
+  const rutina = rutinaCustom ?? rutinaDefault;
+  const dias = rutina ? parsearJson<DiaRutina[]>(rutina.contenido) : [];
+  const dia = dias.find((d) => d.id === diaId);
+  if (dia) {
+    await registrarHistorial({ userId: sesion.userId, tipo: "rutina", referencia: diaId, etiqueta: `${dia.day} — ${dia.focus}` });
   }
 
   return NextResponse.json({ completado: true });

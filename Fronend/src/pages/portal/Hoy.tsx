@@ -63,7 +63,7 @@ export default function Hoy() {
       <main className="wide">
         <span className="eyebrow">Tu día</span>
         <h1>Hoy</h1>
-        <p>Aún no tienes un objetivo asignado. Tu entrenador lo asignará próximamente.</p>
+        <p>Aún no tienes un plan y objetivo activos. Tu entrenador te los asignará próximamente.</p>
       </main>
     );
   }

@@ -46,7 +46,7 @@ export default function MisRutinas() {
     return (
       <main className="wide">
         <h1>Mis Rutinas</h1>
-        <p>Aún no tienes un objetivo asignado. Tu entrenador lo asignará próximamente.</p>
+        <p>Aún no tienes un plan y objetivo activos. Tu entrenador te los asignará próximamente.</p>
       </main>
     );
   }

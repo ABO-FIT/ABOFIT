@@ -34,7 +34,7 @@ export async function GET(request: Request) {
 
   const usuario = await db("users").where({ id: sesion.userId }).first();
 
-  if (!usuario.goal_key) {
+  if (!usuario.plan_key || !usuario.goal_key) {
     return NextResponse.json({ asignado: false });
   }
 
