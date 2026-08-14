@@ -112,7 +112,8 @@ export async function POST(request: Request) {
   await db("password_set_tokens").insert({ user_id: userId, token, expires_at: expiresAt });
 
   const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5173";
-  await enviarCorreoDefinirPassword(correoNormalizado, `${frontendUrl}/establecer-password?token=${token}`);
+  const enlace = `${frontendUrl}/establecer-password?token=${token}`;
+  await enviarCorreoDefinirPassword(correoNormalizado, enlace);
 
   const admin = await db("users").where({ id: sesion.userId }).first();
   await registrarAuditoria({
@@ -125,5 +126,8 @@ export async function POST(request: Request) {
     despues: { nombre, apellido, correo: correoNormalizado, usuario: usuarioNormalizado, rol },
   });
 
-  return NextResponse.json({ message: "Usuario creado correctamente." }, { status: 201 });
+  return NextResponse.json(
+    { message: "Usuario creado correctamente. Se envió un correo con el enlace para definir su contraseña.", enlace },
+    { status: 201 },
+  );
 }

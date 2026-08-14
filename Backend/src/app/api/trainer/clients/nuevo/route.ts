@@ -106,5 +106,8 @@ export async function POST(request: Request) {
   const enlace = `${frontendUrl}/establecer-password?token=${token}`;
   await enviarCorreoDefinirPassword(correoNormalizado, enlace);
 
-  return NextResponse.json({ message: "Cliente creado. Se envió un enlace al correo para definir la contraseña." }, { status: 201 });
+  return NextResponse.json(
+    { message: "Cliente creado. Se envió un enlace al correo para definir la contraseña.", enlace },
+    { status: 201 },
+  );
 }

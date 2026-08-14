@@ -382,7 +382,7 @@ export interface NuevoClientePayload {
 }
 
 export function crearClienteDirecto(token: string, payload: NuevoClientePayload) {
-  return request<{ message: string }>("/api/trainer/clients/nuevo", "POST", payload, token);
+  return request<{ message: string; enlace: string }>("/api/trainer/clients/nuevo", "POST", payload, token);
 }
 
 export interface ClienteDetalle {
@@ -763,7 +763,7 @@ export interface NuevoUsuarioAdminPayload {
 }
 
 export function crearUsuarioAdmin(token: string, payload: NuevoUsuarioAdminPayload) {
-  return request<{ message: string }>("/api/admin/users", "POST", payload, token);
+  return request<{ message: string; enlace: string }>("/api/admin/users", "POST", payload, token);
 }
 
 export function editarUsuarioAdmin(token: string, id: number, payload: { nombre: string; apellido: string; correo: string; telefono: string }) {

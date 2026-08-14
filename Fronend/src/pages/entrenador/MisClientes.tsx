@@ -50,6 +50,7 @@ export default function MisClientes() {
   const [nuevoCliente, setNuevoCliente] = useState<NuevoClientePayload>(NUEVO_CLIENTE_INICIAL);
   const [errorNuevo, setErrorNuevo] = useState<string | null>(null);
   const [mensajeNuevo, setMensajeNuevo] = useState<string | null>(null);
+  const [enlaceNuevo, setEnlaceNuevo] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
 
   function cargar() {
@@ -133,11 +134,13 @@ export default function MisClientes() {
 
     setErrorNuevo(null);
     setMensajeNuevo(null);
+    setEnlaceNuevo(null);
     setGuardando(true);
 
     try {
       const respuesta = await crearClienteDirecto(token, nuevoCliente);
       setMensajeNuevo(respuesta.message);
+      setEnlaceNuevo(respuesta.enlace);
       setNuevoCliente(NUEVO_CLIENTE_INICIAL);
       cargar();
     } catch (err) {
@@ -260,6 +263,23 @@ export default function MisClientes() {
             </button>
           </form>
           {mensajeNuevo && <p role="status">{mensajeNuevo}</p>}
+          {enlaceNuevo && (
+            <div className="card" style={{ marginTop: 8, background: "var(--bg)" }}>
+              <p style={{ margin: "0 0 8px", fontSize: 13, color: "var(--muted)" }}>
+                Si el correo no llega, comparte este enlace directamente con tu cliente para que defina su contraseña:
+              </p>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <code style={{ fontSize: 12, wordBreak: "break-all" }}>{enlaceNuevo}</code>
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => navigator.clipboard.writeText(enlaceNuevo).then(() => setMensajeNuevo("Enlace copiado al portapapeles.")).catch(() => {})}
+                >
+                  Copiar enlace
+                </button>
+              </div>
+            </div>
+          )}
           {errorNuevo && <p role="alert">{errorNuevo}</p>}
         </div>
       )}

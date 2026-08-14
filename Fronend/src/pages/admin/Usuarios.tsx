@@ -26,6 +26,7 @@ export default function Usuarios() {
   const [mostrarNuevo, setMostrarNuevo] = useState(false);
   const [nuevo, setNuevo] = useState<NuevoUsuarioAdminPayload>(NUEVO_INICIAL);
   const [mensajeNuevo, setMensajeNuevo] = useState<string | null>(null);
+  const [enlaceNuevo, setEnlaceNuevo] = useState<string | null>(null);
   const [errorNuevo, setErrorNuevo] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
 
@@ -46,16 +47,27 @@ export default function Usuarios() {
     if (!token) return;
     setErrorNuevo(null);
     setMensajeNuevo(null);
+    setEnlaceNuevo(null);
     setGuardando(true);
     try {
       const respuesta = await crearUsuarioAdmin(token, nuevo);
       setMensajeNuevo(respuesta.message);
+      setEnlaceNuevo(respuesta.enlace);
       setNuevo(NUEVO_INICIAL);
       cargar();
     } catch (err) {
       setErrorNuevo(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
     } finally {
       setGuardando(false);
+    }
+  }
+
+  async function copiarEnlace(enlace: string) {
+    try {
+      await navigator.clipboard.writeText(enlace);
+      setMensajeNuevo("Enlace copiado al portapapeles.");
+    } catch {
+      // Si el navegador no permite copiar, el enlace igual queda visible para copiarlo a mano.
     }
   }
 
@@ -119,6 +131,17 @@ export default function Usuarios() {
             <button type="submit" disabled={guardando}>{guardando ? "Creando..." : "Crear usuario"}</button>
           </form>
           {mensajeNuevo && <p role="status">{mensajeNuevo}</p>}
+          {enlaceNuevo && (
+            <div className="card" style={{ marginTop: 8, background: "var(--bg)" }}>
+              <p style={{ margin: "0 0 8px", fontSize: 13, color: "var(--muted)" }}>
+                Si el correo no llega (SMTP no configurado, va a spam, etc.), comparte este enlace directamente con el usuario para que pueda definir su contraseña:
+              </p>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <code style={{ fontSize: 12, wordBreak: "break-all" }}>{enlaceNuevo}</code>
+                <button type="button" className="secondary" onClick={() => copiarEnlace(enlaceNuevo)}>Copiar enlace</button>
+              </div>
+            </div>
+          )}
           {errorNuevo && <p role="alert">{errorNuevo}</p>}
         </div>
       )}
