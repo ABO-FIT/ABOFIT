@@ -5,7 +5,7 @@ import { eliminarImagen, guardarImagen } from "@/lib/upload";
 import { crearNotificacion } from "@/lib/notificaciones";
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Cliente") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

@@ -14,7 +14,7 @@ function esCorreoValido(correo: string): boolean {
 }
 
 export async function GET(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Administrador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Administrador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

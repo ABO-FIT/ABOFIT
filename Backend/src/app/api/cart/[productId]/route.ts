@@ -5,7 +5,7 @@ import { obtenerSesion } from "@/lib/auth";
 const ROLES_COMPRA = ["Cliente", "Entrenador"];
 
 export async function PUT(request: Request, { params }: { params: { productId: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || !ROLES_COMPRA.includes(sesion.rol)) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
@@ -25,7 +25,7 @@ export async function PUT(request: Request, { params }: { params: { productId: s
 }
 
 export async function DELETE(request: Request, { params }: { params: { productId: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || !ROLES_COMPRA.includes(sesion.rol)) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

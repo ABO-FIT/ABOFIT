@@ -4,7 +4,7 @@ import { obtenerSesion } from "@/lib/auth";
 import { obtenerDetalleFactura } from "@/lib/facturaDetalle";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 });
   }

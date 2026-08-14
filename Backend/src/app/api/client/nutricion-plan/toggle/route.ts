@@ -5,7 +5,7 @@ import { obtenerComidasAsignadas } from "@/lib/dietaEstado";
 import { registrarHistorial } from "@/lib/historial";
 
 export async function POST(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Cliente") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

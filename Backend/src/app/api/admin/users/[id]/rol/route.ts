@@ -6,7 +6,7 @@ import { registrarAuditoria } from "@/lib/auditoria";
 const ROLES_VALIDOS = ["Administrador", "Entrenador", "Cliente"];
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Administrador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

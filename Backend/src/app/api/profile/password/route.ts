@@ -6,7 +6,7 @@ import { obtenerSesion } from "@/lib/auth";
 const PASSWORD_MIN_LENGTH = 8;
 
 export async function PUT(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 });
   }

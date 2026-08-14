@@ -13,7 +13,7 @@ function esCorreoValido(correo: string): boolean {
 }
 
 export async function POST(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

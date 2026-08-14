@@ -5,7 +5,7 @@ import { obtenerClienteDelEntrenador } from "@/lib/trainerClient";
 import { crearNotificacion } from "@/lib/notificaciones";
 
 export async function GET(request: Request, { params }: { params: { clientId: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
@@ -27,7 +27,7 @@ export async function GET(request: Request, { params }: { params: { clientId: st
 }
 
 export async function POST(request: Request, { params }: { params: { clientId: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

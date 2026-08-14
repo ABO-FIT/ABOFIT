@@ -8,7 +8,7 @@ import { registrarAuditoria } from "@/lib/auditoria";
 const NIVELES_ACTIVIDAD = ["sedentario", "ligero", "moderado", "activo", "muy_activo"];
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
@@ -113,7 +113,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

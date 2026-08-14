@@ -4,7 +4,7 @@ import { obtenerSesion } from "@/lib/auth";
 import { obtenerOCrearPagoPendiente } from "@/lib/pagosPlan";
 
 export async function GET(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Cliente") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

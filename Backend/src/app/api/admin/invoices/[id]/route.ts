@@ -3,7 +3,7 @@ import { obtenerSesion } from "@/lib/auth";
 import { obtenerDetalleFactura } from "@/lib/facturaDetalle";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Administrador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

@@ -3,7 +3,7 @@ import { obtenerSesion } from "@/lib/auth";
 import { calcularAlertasEntrenador } from "@/lib/alertas";
 
 export async function GET(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

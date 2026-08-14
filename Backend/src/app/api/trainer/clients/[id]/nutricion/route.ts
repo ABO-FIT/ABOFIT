@@ -5,7 +5,7 @@ import { obtenerClienteDelEntrenador } from "@/lib/trainerClient";
 import { obtenerAdherenciaSemanaDieta } from "@/lib/dietaEstado";
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

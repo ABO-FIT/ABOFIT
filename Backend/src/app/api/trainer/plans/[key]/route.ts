@@ -12,7 +12,7 @@ function parsearBeneficios(valor: unknown): string[] | null {
 }
 
 export async function PUT(request: Request, { params }: { params: { key: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
@@ -60,7 +60,7 @@ export async function PUT(request: Request, { params }: { params: { key: string 
 }
 
 export async function DELETE(request: Request, { params }: { params: { key: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

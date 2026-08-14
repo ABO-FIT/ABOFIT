@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 
 export async function PUT(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 });
   }

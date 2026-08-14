@@ -6,7 +6,7 @@ import { obtenerClienteDelEntrenador } from "@/lib/trainerClient";
 const OBJETIVOS_VALIDOS = ["masa", "grasa", "mantenimiento", "rendimiento"];
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Entrenador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

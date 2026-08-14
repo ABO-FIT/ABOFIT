@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { obtenerSesion } from "@/lib/auth";
 
 export async function GET(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Cliente") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

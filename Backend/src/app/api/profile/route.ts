@@ -7,7 +7,7 @@ function esCorreoValido(correo: string): boolean {
 }
 
 export async function GET(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 });
   }
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 });
   }

@@ -14,7 +14,7 @@ const ETIQUETAS_ESTADO: Record<string, string> = {
 const ESTADOS_VALIDOS = ["pendiente", "recibido", "entregado", "cancelado"];
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Administrador") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

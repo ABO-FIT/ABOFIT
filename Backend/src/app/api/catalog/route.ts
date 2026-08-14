@@ -4,7 +4,7 @@ import { obtenerSesion } from "@/lib/auth";
 import { parsearJson } from "@/lib/json";
 
 export async function GET(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   const { searchParams } = new URL(request.url);
   const goalFiltro = searchParams.get("goal");
   const cat = searchParams.get("cat");

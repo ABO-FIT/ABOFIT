@@ -4,7 +4,7 @@ import { obtenerSesion } from "@/lib/auth";
 import { aplicarCancelacion } from "@/lib/cancelacionPlan";
 
 export async function POST(request: Request) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || sesion.rol !== "Cliente") {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }

@@ -7,7 +7,7 @@ import { crearNotificacion } from "@/lib/notificaciones";
 const ROLES_COMPRA = ["Cliente", "Entrenador"];
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const sesion = obtenerSesion(request);
+  const sesion = await obtenerSesion(request);
   if (!sesion || !ROLES_COMPRA.includes(sesion.rol)) {
     return NextResponse.json({ error: "No autorizado." }, { status: 403 });
   }
